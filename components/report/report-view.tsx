@@ -114,7 +114,11 @@ export function BoardReplay({
           strokeWidth: focused ? 5 : 3,
         };
         return (
-          <g key={element.id} filter={focused ? "url(#focus-glow)" : undefined}>
+          <g
+            key={element.id}
+            data-element-id={element.id}
+            filter={focused ? "url(#focus-glow)" : undefined}
+          >
             {element.type === "ellipse" ? (
               <ellipse
                 cx={labelX}

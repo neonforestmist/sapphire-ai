@@ -17,8 +17,8 @@ import {
 
 import type { GeminiGateway } from "./gateway";
 
-const GLOBAL_CLAIM = /global(?:ly)?\s+(?:consistent|shared)|single\s+(?:global\s+)?quota/i;
-const STORE_LABEL = /redis|quota\s*store|rate.?limit\s*store/i;
+const GLOBAL_CLAIM = /global(?:ly)?\s+(?:consistent|shared)|single\s+(?:global\s+)?quota|(?:one|single)\s+shared\s+(?:usage\s+)?limit/i;
+const STORE_LABEL = /redis|quota\s*store|rate.?limit\s*store|counter/i;
 const COORDINATION_LABEL = /synchron|coordinat|consensus|shared\s*state|global\s*store/i;
 
 function emptyEvidence(snapshotId: string | null): EvidenceRef {
@@ -69,18 +69,18 @@ export class MockGeminiGateway implements GeminiGateway {
     return interviewBlueprintSchema.parse({
       id: `blueprint-${input.scenarioId}`.slice(0, 128),
       scenarioId: input.scenarioId,
-      roleTitle: "Senior Software Engineer — System Design",
-      seniority: "Senior",
-      problemStatement: "Design a globally distributed API rate limiter.",
+      roleTitle: "AI Engineering Intern - Systems Basics",
+      seniority: "Intern",
+      problemStatement: "Give an AI study helper one shared usage limit.",
       initialKnownRequirements: [
-        "Serve traffic from US and EU regions.",
-        "Protect an API with per-user quotas.",
+        "Help students from US and EU regions.",
+        "Allow 10 AI answers per student each minute.",
       ],
       withheldClarifications: [
         {
           id: "clarification-consistency",
-          questionPattern: "Must quota enforcement be globally consistent?",
-          answer: "Yes. A user must not consume the full quota independently in each region.",
+          questionPattern: "Is the usage limit shared across both regions?",
+          answer: "Yes. A student gets 10 answers total, not 10 in each region.",
         },
       ],
       hiddenRubric: [
@@ -170,7 +170,7 @@ export class MockGeminiGateway implements GeminiGateway {
           {
             id: "observation-global-requirement",
             category: "requirement",
-            statement: "The candidate requires globally consistent quota enforcement.",
+            statement: "The candidate requires one shared usage limit for each student.",
             evidence,
             confidence: 0.99,
           },
@@ -178,15 +178,15 @@ export class MockGeminiGateway implements GeminiGateway {
         contradictions: [
           {
             id: "contradiction-global-consistency",
-            description: "The stated global quota invariant is not represented by the disconnected regional stores.",
+            description: "The shared usage rule is not represented by the disconnected regional counters.",
             spokenClaim: globalClaim.text,
-            boardInterpretation: "The regional quota stores have no shared-state or synchronization path.",
-            whyItMatters: "A user could consume an independent full quota in more than one region.",
+            boardInterpretation: "The regional counters have no shared-state or synchronization path.",
+            whyItMatters: "A student could receive the full allowance once in each region.",
             evidence,
             confidence: 0.98,
           },
         ],
-        unresolvedQuestions: ["How is quota state coordinated across regions?"],
+        unresolvedQuestions: ["How do the two counters share each student's usage?"],
         updatedCompetencySignals: [
           {
             id: "signal-requirement-consistency",
@@ -199,8 +199,8 @@ export class MockGeminiGateway implements GeminiGateway {
         ],
         recommendedProbe: {
           action: "ask",
-          question: "You said the quota must remain globally consistent, but these regional stores currently have no shared state. What prevents one user from consuming the full quota in both regions?",
-          reason: "This is the highest-impact mismatch between the spoken requirement and the current architecture.",
+          question: "You want one shared limit, but these regional counters do not exchange updates. What stops a student from using the full limit in both regions?",
+          reason: "This is the clearest mismatch between the student's rule and the current diagram.",
           focusElementIds: stores.map((store) => store.id),
           urgency: "next_pause",
           confidence: 0.98,
@@ -217,7 +217,7 @@ export class MockGeminiGateway implements GeminiGateway {
       };
       return reasoningStateSchema.parse({
         boardSummary: "The regional quota stores now connect through a coordination component.",
-        candidateApproachSummary: "The candidate revised the design to coordinate quota state across regions.",
+        candidateApproachSummary: "The candidate revised the design so both regions share student usage.",
         observations: [
           {
             id: "observation-coordination-revision",
@@ -305,13 +305,13 @@ export class MockGeminiGateway implements GeminiGateway {
       generatedAt: this.now(),
       problemFraming: section("problem-framing", "The candidate established the central quota requirement."),
       requirementDiscovery: section("requirement-discovery", "The interview surfaced global consistency as a key requirement."),
-      decomposition: section("decomposition", "The board decomposed traffic and quota state by region."),
+      decomposition: section("decomposition", "The board separated the study helper and its usage counter by region."),
       technicalCorrectness: section("technical-correctness", detectedInconsistency ? "An initial state-coordination gap was identified." : "No unsupported technical judgment was added."),
       tradeoffReasoning: section("tradeoff-reasoning", "The evidence supports continued practice on consistency and availability trade-offs."),
       adaptabilityUnderChallenge: section("adaptability", candidateRevision ? "The candidate revised the design after the probe." : "No evidence-backed revision was recorded."),
       communication: section("communication", "Spoken requirements were compared with visible architecture evidence."),
       strongestObservedMoment: judgment("strongest-moment", "Strongest observed moment", candidateRevision ? "The candidate made an evidence-linked board revision." : "The candidate stated a concrete system invariant."),
-      mostImportantMissedIssue: judgment("missed-issue", "Most important missed issue", detectedInconsistency ? "The initial design did not show how regional quota state remained globally consistent." : "More evidence is needed to identify a specific missed issue."),
+      mostImportantMissedIssue: judgment("missed-issue", "Most important missed issue", detectedInconsistency ? "The initial design did not show how the US and EU counters shared one student limit." : "More evidence is needed to identify a specific missed issue."),
       keyDecisionTimeline: timeline,
       boardEvolutionTimeline: timeline.filter((item) => ["board_change", "contradiction", "probe", "revision"].includes(item.kind)).length > 0
         ? timeline.filter((item) => ["board_change", "contradiction", "probe", "revision"].includes(item.kind))

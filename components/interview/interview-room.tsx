@@ -101,7 +101,7 @@ const initialSkeleton = () => [
     y: 100,
     width: 190,
     height: 88,
-    label: { id: "us-redis-label", text: "US Redis", fontSize: 22 },
+    label: { id: "us-redis-label", text: "US counter\n(Redis)", fontSize: 20 },
     strokeColor: "#7ba2ff",
     backgroundColor: "#142647",
     fillStyle: "solid" as const,
@@ -127,7 +127,7 @@ const initialSkeleton = () => [
     y: 360,
     width: 190,
     height: 88,
-    label: { id: "eu-redis-label", text: "EU Redis", fontSize: 22 },
+    label: { id: "eu-redis-label", text: "EU counter\n(Redis)", fontSize: 20 },
     strokeColor: "#7ba2ff",
     backgroundColor: "#142647",
     fillStyle: "solid" as const,
@@ -259,8 +259,8 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
   const probe = reasoning?.recommendedProbe ?? null;
   const focusLabels = useMemo(() => {
     const labels = new Map<string, string>([
-      [RATE_LIMITER_IDS.usRedis, "US Redis"],
-      [RATE_LIMITER_IDS.euRedis, "EU Redis"],
+      [RATE_LIMITER_IDS.usRedis, "US counter"],
+      [RATE_LIMITER_IDS.euRedis, "EU counter"],
       [RATE_LIMITER_IDS.coordinator, "Global coordinator"],
     ]);
     const order: string[] = [
@@ -299,7 +299,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
     );
     if (revised) {
       setReasoningText(
-        "I’ll add a global quota coordinator so both regional Redis stores share quota state.",
+        "I’ll connect both regional counters to one coordinator so a student cannot use the limit twice.",
       );
     }
     frameBoard(api, elements);
@@ -505,7 +505,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
             </div>
             <div className={styles.boardActions}>
               <button className="button-secondary" onClick={() => void placeScenario(false)} disabled={!boardReady || status !== "idle"}>
-                {scenarioLoaded ? "Reset signature board" : "Load signature board"}
+                {scenarioLoaded ? "Reset example board" : "Load example board"}
               </button>
               <button className={styles.revisionButton} onClick={() => void placeScenario(true)} disabled={!boardReady || !contradiction || status !== "idle"}>
                 + Add coordination path
@@ -557,7 +557,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
           <section className={styles.interviewerCard}>
             <div className={styles.interviewerHead}>
               <div className={styles.avatar}>S</div>
-              <div><strong>Sapphire interviewer</strong><span>Evidence-grounded · text fallback</span></div>
+              <div><strong>Sapphire interviewer</strong><span>Evidence-grounded text fallback</span></div>
             </div>
             {probe?.question ? (
               <div className={styles.probe} data-testid="interviewer-probe">
@@ -590,7 +590,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
             ) : reasoning?.observations.some((item) => item.category === "revision") ? (
               <div className={styles.resolved}>
                 <span>Revision recognized</span>
-                <h2>The coordination path now connects both regional stores.</h2>
+                <h2>The coordination path now connects both regional counters.</h2>
                 <p>The report will preserve the original mismatch, interviewer probe, and this board revision.</p>
               </div>
             ) : (

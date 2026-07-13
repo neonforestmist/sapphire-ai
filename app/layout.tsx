@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s | SapphireAI"
   },
   description:
-    "Practice system design on a live whiteboard with an AI interviewer that grounds every follow-up in what you said and drew.",
+    "Practice a beginner-friendly AI engineering interview on a live whiteboard with follow-ups grounded in what you said and drew.",
   applicationName: "SapphireAI",
   robots: { index: false, follow: false }
 };

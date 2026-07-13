@@ -115,7 +115,7 @@ describe("deterministic Gemini mock", () => {
 
     expect(result.contradictions[0]?.id).toBe("contradiction-global-consistency");
     expect(result.recommendedProbe.focusElementIds).toEqual(["us-store", "eu-store"]);
-    expect(result.recommendedProbe.question).toMatch(/globally consistent/i);
+    expect(result.recommendedProbe.question).toMatch(/one shared limit/i);
   });
 
   it("recognizes a synchronization revision after the contradiction", async () => {
@@ -152,7 +152,7 @@ describe("real interaction boundary", () => {
       mode: "demo",
     });
 
-    expect(blueprint.problemStatement).toBe("Design a globally distributed API rate limiter.");
+    expect(blueprint.problemStatement).toBe("Give an AI study helper one shared usage limit.");
     expect(blueprint.hiddenRubric).toContain("Address global versus regional consistency.");
     expect(create).not.toHaveBeenCalled();
     expect(logger.info).toHaveBeenCalledWith(

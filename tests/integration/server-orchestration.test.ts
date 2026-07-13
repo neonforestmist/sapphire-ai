@@ -89,7 +89,7 @@ describe("Sapphire interview server orchestration", () => {
     expect(
       [...initial.reasoningState.recommendedProbe.focusElementIds].sort(),
     ).toEqual([RATE_LIMITER_IDS.usRedis, RATE_LIMITER_IDS.euRedis].sort());
-    expect(initial.reasoningState.recommendedProbe.question).toMatch(/globally consistent/i);
+    expect(initial.reasoningState.recommendedProbe.question).toMatch(/one shared limit/i);
 
     harness.advance();
     const revised = await harness.service.analyzeBoard(created.session.id, {

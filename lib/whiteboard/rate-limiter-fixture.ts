@@ -19,10 +19,10 @@ export const RATE_LIMITER_IDS = {
 } as const;
 
 export const RATE_LIMITER_PROBLEM_STATEMENT =
-  "Design a globally distributed API rate limiter.";
+  "Give an AI study helper one shared usage limit.";
 
 export const RATE_LIMITER_GLOBAL_CLAIM =
-  "The quota must remain globally consistent across every region.";
+  "Each student gets one shared usage limit across the US and EU.";
 
 const INITIAL_RAW_ELEMENTS: readonly unknown[] = [
   {
@@ -39,7 +39,7 @@ const INITIAL_RAW_ELEMENTS: readonly unknown[] = [
   {
     id: RATE_LIMITER_IDS.usRedis,
     type: "rectangle",
-    text: "US Redis",
+    text: "US counter (Redis)",
     x: 340,
     y: 120,
     width: 160,
@@ -61,7 +61,7 @@ const INITIAL_RAW_ELEMENTS: readonly unknown[] = [
   {
     id: RATE_LIMITER_IDS.euRedis,
     type: "rectangle",
-    text: "EU Redis",
+    text: "EU counter (Redis)",
     x: 340,
     y: 360,
     width: 160,
@@ -168,7 +168,7 @@ export const createRateLimiterAnalysisInput = (
   previousReasoningState,
   currentStage: "SOLUTION_CONSTRUCTION",
   recentTranscript: [RATE_LIMITER_GLOBAL_TRANSCRIPT],
-  olderSessionSummary: "The candidate is designing a distributed rate limiter.",
+  olderSessionSummary: "The candidate is limiting an AI study helper across two regions.",
   hiddenRubric: [
     "Clarify scope and traffic.",
     "Define global versus regional consistency semantics.",

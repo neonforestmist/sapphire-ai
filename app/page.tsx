@@ -3,10 +3,10 @@ import { Brand } from "@/components/brand";
 import styles from "./page.module.css";
 
 const evidenceMoments = [
-  { time: "02:14", label: "Spoken requirement", copy: "“Quotas must remain globally consistent.”" },
-  { time: "02:31", label: "Board mismatch", copy: "Regional stores have no shared state." },
-  { time: "02:36", label: "Sapphire probe", copy: "What prevents a user from consuming the quota twice?" },
-  { time: "03:08", label: "Candidate revision", copy: "Adds a global coordination path." }
+  { label: "Say the rule", copy: "“Each student gets one shared usage limit.”" },
+  { label: "Spot the mismatch", copy: "The US and EU counters do not share updates." },
+  { label: "Answer one question", copy: "What stops a student from using the limit in both regions?" },
+  { label: "Improve the diagram", copy: "Connect both counters to one coordinator." }
 ];
 
 export default function LandingPage() {
@@ -15,7 +15,7 @@ export default function LandingPage() {
       <nav className={`shell top-nav ${styles.nav}`} aria-label="Primary navigation">
         <Brand />
         <div className={styles.navActions}>
-          <Link className="button-secondary" href="/interview/new">Start interview</Link>
+          <Link className="button-secondary" href="/interview/new">Try the practice</Link>
         </div>
       </nav>
 
@@ -23,47 +23,46 @@ export default function LandingPage() {
         <div className={styles.heroCopy}>
           <h1>The interviewer that<br /><span>sees how you think.</span></h1>
           <p className={styles.lede}>
-            Sapphire listens to your reasoning, watches your architecture evolve, and asks the one
-            follow-up grounded in the exact elements on your board.
+            Try an AI intern prompt. Explain your idea, sketch four boxes, and get one follow-up tied to your diagram.
           </p>
           <div className={styles.heroActions}>
             <Link className="button-primary" href="/interview/new">
-              Practice system design <span aria-hidden="true">→</span>
+              Try the intern interview <span aria-hidden="true">→</span>
             </Link>
-            <a className="button-quiet" href="#how-it-works">See the signature moment</a>
+            <a className="button-quiet" href="#how-it-works">See how it works</a>
           </div>
           <div className={styles.trustRow} aria-label="Product capabilities">
-            <span>No account</span><span>Text fallback</span><span>Evidence-linked report</span>
+            <span>No account</span><span>No advanced vocabulary</span><span>Evidence-linked report</span>
           </div>
         </div>
 
         <div
           className={styles.heroVisual}
           role="img"
-          aria-label="Preview of Sapphire highlighting two disconnected regional stores and asking how they share quota state"
+          aria-label="Preview of Sapphire highlighting two disconnected regional counters for an AI study helper"
         >
           <div className={styles.mockTopbar}>
-            <div><span className={styles.miniMark} />System Design</div>
-            <span>Solution construction · 02:36</span>
+            <div><span className={styles.miniMark} />AI Engineering Intern</div>
+            <span>Practice board</span>
           </div>
           <div className={styles.mockRoom}>
             <div className={styles.boardPreview}>
               <div className={`${styles.boardNode} ${styles.usApi}`}>US API</div>
               <div className={`${styles.boardNode} ${styles.euApi}`}>EU API</div>
-              <div className={`${styles.boardNode} ${styles.redisUs} ${styles.focused}`}>US Redis</div>
-              <div className={`${styles.boardNode} ${styles.redisEu} ${styles.focused}`}>EU Redis</div>
+              <div className={`${styles.boardNode} ${styles.redisUs} ${styles.focused}`}>US counter</div>
+              <div className={`${styles.boardNode} ${styles.redisEu} ${styles.focused}`}>EU counter</div>
               <div className={`${styles.arrow} ${styles.arrowUs}`} />
               <div className={`${styles.arrow} ${styles.arrowEu}`} />
               <div className={styles.focusLabel}>2 elements referenced</div>
               <div className={styles.probeCard}>
-                <p>You said the quota is globally consistent. How do these stores share state?</p>
+                <p>You want one limit. What stops a student from using it in both regions?</p>
               </div>
             </div>
             <aside className={styles.mockSidebar}>
-              <h2>Design a globally distributed API rate limiter.</h2>
+              <h2>Give an AI study helper one shared usage limit.</h2>
               <div className={styles.caption}>
-                <span>You · 02:14</span>
-                <p>Quotas must remain globally consistent across regions.</p>
+                <span>Your explanation</span>
+                <p>Each student gets one shared limit across the US and EU.</p>
               </div>
               <div className={styles.analysisState}><span />Board evidence ready</div>
             </aside>
@@ -73,14 +72,12 @@ export default function LandingPage() {
 
       <section className={`shell ${styles.signature}`} id="how-it-works">
         <div className={styles.sectionIntro}>
-          <h2>Not a generic chat. A replay of observable reasoning.</h2>
-          <p>Sapphire connects what you said to what changed on the board, without guessing at private thought.</p>
+          <h2>A small diagram with a clear lesson.</h2>
+          <p>Sapphire connects your rule to your drawing, highlights the gap, and remembers how you fixed it.</p>
         </div>
         <div className={styles.timeline}>
-          {evidenceMoments.map((moment, index) => (
+          {evidenceMoments.map((moment) => (
             <article key={moment.label} className={styles.moment}>
-              <div className={styles.momentIndex}>{String(index + 1).padStart(2, "0")}</div>
-              <time>{moment.time}</time>
               <h3>{moment.label}</h3>
               <p>{moment.copy}</p>
             </article>
@@ -90,9 +87,9 @@ export default function LandingPage() {
 
       <section className={`shell ${styles.closing}`}>
         <div>
-          <h2>Practice the part interview prep usually misses.</h2>
+          <h2>See how one small change makes the idea stronger.</h2>
         </div>
-        <Link className="button-primary" href="/interview/new">Open the whiteboard</Link>
+        <Link className="button-primary" href="/interview/new">Try the practice</Link>
       </section>
     </main>
   );

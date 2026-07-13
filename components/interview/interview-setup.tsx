@@ -44,19 +44,19 @@ export function InterviewSetup() {
       <nav className={`shell top-nav ${styles.nav}`} aria-label="Setup navigation"><Brand /><Link className="button-quiet" href="/">Exit setup</Link></nav>
       <div className={`shell ${styles.layout}`}>
         <section className={styles.intro}>
-          <h1>System design,<br />under observation.</h1>
-          <p>You’ll have a live whiteboard, one focused prompt, and an interviewer that grounds follow-ups in observable evidence.</p>
+          <h1>Your first AI<br />systems interview.</h1>
+          <p>No advanced vocabulary required. Explain a simple AI study helper, draw the parts, and revise when evidence reveals a gap.</p>
           <ol>
-            <li><span>01</span><div><strong>Clarify the problem</strong><p>State requirements and assumptions aloud or in text.</p></div></li>
-            <li><span>02</span><div><strong>Build on the board</strong><p>Use boxes, labels, arrows, edits, and deletions naturally.</p></div></li>
-            <li><span>03</span><div><strong>Review the evidence</strong><p>Replay the decisions, probes, and revisions that mattered.</p></div></li>
+            <li><div><strong>Say the rule</strong><p>Tell Sapphire that each student gets one limit.</p></div></li>
+            <li><div><strong>Draw the helper</strong><p>Place the US and EU services with their counters.</p></div></li>
+            <li><div><strong>Improve the idea</strong><p>Use the follow-up to connect what was missing.</p></div></li>
           </ol>
         </section>
 
         <section className={`glass-panel ${styles.form}`} aria-labelledby="setup-heading">
           <div className={styles.formHeading}>
-            <h2 id="setup-heading">Prepare your session</h2>
-            <p>4-6 minute demo path | no account required</p>
+            <h2 id="setup-heading">Set up a practice round</h2>
+            <p>About 4 minutes | no account required</p>
           </div>
 
           <fieldset className={styles.fieldset}>
@@ -64,20 +64,20 @@ export function InterviewSetup() {
             <label className={`${styles.modeCard} ${inputMode === "text" ? styles.selected : ""}`}>
               <input type="radio" name="input-mode" value="text" checked={inputMode === "text"} onChange={() => setInputMode("text")} />
               <span className={styles.modeIcon} aria-hidden="true">⌨</span>
-              <span><strong>Text fallback</strong><small>Reliable and ready without permissions</small></span>
+              <span><strong>Type your answer</strong><small>Quick, reliable, and permission-free</small></span>
               <span className={styles.radioMark} aria-hidden="true" />
             </label>
             <label className={`${styles.modeCard} ${styles.disabledMode}`}>
               <input type="radio" name="input-mode" value="voice" checked={false} disabled onChange={() => setInputMode("voice")} />
               <span className={styles.modeIcon} aria-hidden="true">◉</span>
-              <span><strong>Voice + captions</strong><small>Available after Live transport is verified</small></span>
+              <span><strong>Voice practice</strong><small>Coming after Live transport is verified</small></span>
               <span className={styles.radioMark} aria-hidden="true" />
             </label>
           </fieldset>
 
           <div className={styles.scenario}>
-            <h3>Design a globally distributed API rate limiter.</h3>
-            <p>Focus on consistency, latency, failure modes, and how state moves between regions.</p>
+            <h3>Give an AI study helper one shared usage limit.</h3>
+            <p>Students may use the helper from the US or EU. Each student gets 10 answers per minute total.</p>
           </div>
 
           <label className={styles.consent}>
@@ -87,7 +87,7 @@ export function InterviewSetup() {
 
           {error && <p className={styles.error} role="alert">{displayText(error)}</p>}
           <button type="button" className={`button-primary ${styles.submit}`} disabled={!consent || isCreating} onClick={beginInterview}>
-            {isCreating ? "Opening whiteboard…" : "Enter interview room"}<span aria-hidden="true">→</span>
+            {isCreating ? "Opening whiteboard…" : "Start practice"}<span aria-hidden="true">→</span>
           </button>
           <p className={styles.privacyNote}>You can delete the full session and its artifacts from the report.</p>
         </section>

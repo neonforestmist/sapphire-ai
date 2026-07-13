@@ -13,7 +13,7 @@ describe("deterministic rate-limiter reasoning", () => {
     expect(reasoning.contradictions).toHaveLength(1);
     expect(reasoning.contradictions[0]).toMatchObject({
       id: "contradiction-global-vs-regional-state",
-      spokenClaim: expect.stringMatching(/globally consistent/i),
+      spokenClaim: expect.stringMatching(/one shared usage limit/i),
       evidence: {
         transcriptSegmentIds: [RATE_LIMITER_IDS.globalClaimTranscript],
         boardElementIds: [RATE_LIMITER_IDS.usRedis, RATE_LIMITER_IDS.euRedis],

@@ -7,8 +7,8 @@ import {
 import type { NormalizedBoardElement } from "../whiteboard/schemas";
 
 const GLOBAL_CONSISTENCY_PATTERN =
-  /\b(global(?:ly)?\s+consistent|consistent\s+(?:across|between|in)\s+(?:all\s+)?regions?|global\s+(?:quota|consistency))\b/i;
-const STORE_PATTERN = /\b(redis|cache|store|database|db)\b/i;
+  /\b(global(?:ly)?\s+consistent|consistent\s+(?:across|between|in)\s+(?:all\s+)?regions?|global\s+(?:quota|consistency|limit)|(?:one|single)\s+shared\s+(?:usage\s+)?limit)\b/i;
+const STORE_PATTERN = /\b(redis|cache|store|database|db|counter)\b/i;
 const US_PATTERN = /\b(us|usa|united states|north america)\b/i;
 const EU_PATTERN = /\b(eu|europe|european)\b/i;
 const COORDINATION_PATTERN = /\b(sync|synchronization|coordinat|global quota|shared state|consensus)\w*/i;
@@ -112,14 +112,14 @@ export const createDeterministicMockReasoning = (
     sharedCoordinator === undefined
   ) {
     return reasoningStateSchema.parse({
-      boardSummary: "US and EU API services each use an isolated regional Redis store.",
+      boardSummary: "The US and EU study-helper services each use an isolated regional counter.",
       candidateApproachSummary:
-        "The candidate requires a globally consistent quota but currently keeps quota state regional.",
+        "The candidate wants one shared student limit but currently keeps each region's count separate.",
       observations: [
         {
           id: "observation-global-requirement",
           category: "requirement",
-          statement: "The candidate explicitly requires global quota consistency.",
+          statement: "The candidate explicitly requires one shared usage limit.",
           evidence: {
             transcriptSegmentIds: [transcriptClaim.id],
             boardElementIds: [],
@@ -130,7 +130,7 @@ export const createDeterministicMockReasoning = (
         {
           id: "observation-regional-stores",
           category: "decision",
-          statement: "Quota state is placed in separate US and EU Redis stores.",
+          statement: "Usage is counted in separate US and EU Redis counters.",
           evidence: {
             transcriptSegmentIds: [],
             boardElementIds: storeIds,
@@ -143,12 +143,12 @@ export const createDeterministicMockReasoning = (
         {
           id: "contradiction-global-vs-regional-state",
           description:
-            "The global consistency requirement conflicts with isolated regional quota stores.",
+            "The shared usage limit conflicts with isolated regional counters.",
           spokenClaim: transcriptClaim.text,
           boardInterpretation:
-            "The US and EU Redis stores have no visible shared-state or synchronization path.",
+            "The US and EU counters have no visible shared-state or synchronization path.",
           whyItMatters:
-            "A user could consume the full quota independently in each region.",
+            "A student could receive the full allowance once in the US and again in the EU.",
           evidence: {
             transcriptSegmentIds: [transcriptClaim.id],
             boardElementIds: storeIds,
@@ -157,13 +157,13 @@ export const createDeterministicMockReasoning = (
           confidence: 0.97,
         },
       ],
-      unresolvedQuestions: ["How will quota updates be coordinated across regions?"],
+      unresolvedQuestions: ["How will the two counters share each student's usage?"],
       updatedCompetencySignals: [
         {
           id: "signal-consistency-requirement",
           competency: "requirement_discovery",
           sentiment: "strength",
-          statement: "The candidate stated a concrete consistency requirement.",
+          statement: "The candidate stated one clear usage rule.",
           evidence: {
             transcriptSegmentIds: [transcriptClaim.id],
             boardElementIds: [],
@@ -175,8 +175,8 @@ export const createDeterministicMockReasoning = (
       recommendedProbe: {
         action: "ask",
         question:
-          "You said the quota must remain globally consistent, but these regional stores have no shared state. What prevents one user from consuming the full quota in both regions?",
-        reason: "Test whether the candidate recognizes the missing coordination mechanism.",
+          "You want one shared limit, but these regional counters do not exchange updates. What stops a student from using the full limit in both regions?",
+        reason: "Check whether the candidate notices that the two counters need a coordination path.",
         focusElementIds: storeIds,
         urgency: "next_pause",
         confidence: 0.97,
@@ -194,15 +194,15 @@ export const createDeterministicMockReasoning = (
     const evidenceIds = [usStore.id, euStore.id, sharedCoordinator.id];
     return reasoningStateSchema.parse({
       boardSummary:
-        "Both regional Redis stores now connect to a shared global quota coordination component.",
+        "Both regional counters now connect to a shared coordination component.",
       candidateApproachSummary:
-        "The candidate revised the design to coordinate regional quota state globally.",
+        "The candidate revised the design so both regions share student usage.",
       observations: [
         {
           id: "observation-coordination-revision",
           category: hadConsistencyContradiction ? "revision" : "decision",
           statement:
-            "A shared coordination path now connects both regional quota stores.",
+            "A shared coordination path now connects both regional counters.",
           evidence: {
             transcriptSegmentIds: [transcriptClaim.id],
             boardElementIds: evidenceIds,
@@ -256,7 +256,7 @@ export const createDeterministicMockReasoning = (
     boardSummary:
       elements.length === 0
         ? "The board does not yet contain a system design."
-        : "The board contains an early rate-limiter design without enough evidence for a contradiction.",
+        : "The board contains an early usage-limit design without enough evidence for a contradiction.",
     candidateApproachSummary:
       "The candidate's consistency requirement or regional state topology is not yet explicit.",
     observations: [],

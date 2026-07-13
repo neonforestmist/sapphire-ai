@@ -4,7 +4,30 @@
 
 SapphireAI is a whiteboard-native interview-practice application. It compares a candidate’s observable spoken or typed reasoning with an evolving system-design board, focuses the exact board elements that support a mismatch, and asks one evidence-grounded follow-up.
 
-The flagship scenario is a globally distributed API rate limiter: a candidate requires global quota consistency but draws disconnected regional Redis stores. Sapphire should preserve the claim, identify the missing coordination path, highlight the exact store elements, ask what prevents double consumption, recognize a synchronization revision, and replay that evidence in the final report.
+![SapphireAI landing page with an AI engineering internship practice prompt](docs/images/sapphire-ai-home.png)
+
+## A beginner-friendly demo
+
+Imagine you are practicing for an AI engineering internship. The interviewer asks you to give an AI study helper one shared usage limit: every student may receive 10 answers per minute total, whether they use the US or EU service.
+
+You explain the rule, then draw one counter in each region. Sapphire notices that the counters do not exchange updates, highlights those exact two boxes, and asks what stops a student from using the full limit in both regions. You connect both counters to one coordinator, and the report preserves the claim, mismatch, question, and revision.
+
+This internship prompt is one approachable example of the whiteboard interaction, not a job-matching or multi-role platform.
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/images/sapphire-ai-contradiction.png" alt="SapphireAI highlights the disconnected US and EU counters and asks an evidence-grounded follow-up">
+      <br><sub><strong>Exact contradiction focus:</strong> only the two unsupported regional counters are selected.</sub>
+    </td>
+    <td width="50%">
+      <img src="docs/images/sapphire-ai-report.png" alt="SapphireAI evidence report showing the contradiction, probe, and candidate revision">
+      <br><sub><strong>Evidence-linked report:</strong> the full claim, probe, and revision remain inspectable.</sub>
+    </td>
+  </tr>
+</table>
+
+Under the friendly wording, the flagship acceptance test is still a distributed rate limiter. Sapphire must preserve the shared-limit claim, identify the missing coordination path, focus the exact stable element IDs, ask what prevents double consumption, recognize the coordination revision, and replay that evidence in the final report.
 
 > **Current status:** the complete deterministic flagship flow is implemented and verified locally and through the private Cloud Run deployment. The deployed journey exercised Firestore and Cloud Storage, including deletion. Real Gemini authorization reaches `gemini-3.5-flash`, but the final smoke received retryable provider-capacity errors rather than a validated analysis. Browser Live audio is not implemented, and there is intentionally no public deployment.
 
@@ -58,6 +81,8 @@ pnpm dev
 
 Open the URL printed by Next.js, normally [http://localhost:3000](http://localhost:3000).
 
+The checked-in `.env.example` is safe to copy. Replace its signing-secret placeholder with a local value of at least 32 characters. A local `.env.local` is ignored by Git and should never be committed.
+
 ### Deterministic mock mode
 
 Use mock mode for local development and automated tests:
@@ -71,7 +96,7 @@ APP_BASE_URL=http://localhost:3000
 SESSION_SIGNING_SECRET=replace-with-a-long-random-local-value
 ~~~
 
-The interface must visibly identify mock mode. The deterministic fixture covers the global-consistency claim, isolated US/EU Redis stores, exact element focus, a synchronization revision, and evidence-linked report data.
+The interface visibly identifies mock mode. The deterministic fixture covers the shared-limit claim, isolated US/EU counters, exact element focus, a coordination revision, and evidence-linked report data. It uses no Gemini calls, cloud credentials, or billable Google Cloud services.
 
 ### Real Gemini mode
 
@@ -188,4 +213,4 @@ See [docs/PRIVACY.md](docs/PRIVACY.md) for data handling, retention limitations,
 - Firestore and Cloud Storage were exercised through the private deployed flagship journey; automatic time-based session retention is not yet implemented.
 - The container image and Cloud Run revision were built and verified with Cloud Build because a local container engine is unavailable.
 - The Cloud Run service is deliberately private. Public invocation has not been approved or enabled, so the canonical service URL is not a public demo link.
-- The MVP intentionally contains one deep role pack: Senior Software Engineer, System Design. Multiple roles are outside the current product scope.
+- The MVP intentionally contains one deep, beginner-friendly AI internship practice scenario. Multiple roles are outside the current product scope.
