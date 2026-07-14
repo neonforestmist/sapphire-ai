@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "SapphireAI - The interviewer that sees how you think",
+    default: "SapphireAI - The interviewer that can see how you think",
     template: "%s | SapphireAI"
   },
   description:

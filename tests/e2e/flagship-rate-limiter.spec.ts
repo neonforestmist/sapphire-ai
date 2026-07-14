@@ -16,7 +16,7 @@ test("grounds a rate-limiter contradiction in exact board evidence and records t
   test.setTimeout(120_000);
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /the interviewer that sees how you think/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /the interviewer that can see how you think/i })).toBeVisible();
   await page.getByRole("link", { name: /set up your interview/i }).click();
 
   await expect(page.getByLabel("Interview format")).toHaveValue("system-design");

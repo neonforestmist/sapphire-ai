@@ -21,14 +21,11 @@ export default function LandingPage() {
     <main className={styles.page}>
       <nav className={`shell top-nav ${styles.nav}`} aria-label="Primary navigation">
         <Brand />
-        <div className={styles.navActions}>
-          <Link className="button-secondary" href="/interview/new">Set up an interview</Link>
-        </div>
       </nav>
 
       <section className={`shell ${styles.hero}`}>
         <div className={styles.heroCopy}>
-          <h1>The interviewer that<br /><span>sees how you think.</span></h1>
+          <h1>The interviewer that<br /><span>can see how you think.</span></h1>
           <p className={styles.lede}>
             Type or speak in the same session. Open the whiteboard only when it helps. Sapphire ties each follow-up to observable evidence.
           </p>
@@ -107,13 +104,6 @@ export default function LandingPage() {
             </article>
           ))}
         </div>
-      </section>
-
-      <section className={`shell ${styles.closing}`}>
-        <div>
-          <h2>Choose the interview before the first question.</h2>
-        </div>
-        <Link className="button-primary" href="/interview/new">Set up an interview</Link>
       </section>
     </main>
   );
