@@ -30,10 +30,10 @@ const EXPERIENCE_LABELS = {
 
 const INTERVIEW_VARIANTS = {
   "system-design": {
-    problemStatement: "Give an AI study helper one shared usage limit.",
+    problemStatement: "Give an app one shared usage limit for each user.",
     initialKnownRequirements: [
-      "Help students from US and EU regions.",
-      "Allow 10 AI answers per student each minute.",
+      "Serve users from US and EU regions.",
+      "Allow 10 requests per user each minute.",
     ],
     hiddenRubric: [
       "Clarify scope and traffic.",
@@ -147,7 +147,7 @@ export class MockGeminiGateway implements GeminiGateway {
         {
           id: "clarification-consistency",
           questionPattern: "Is the usage limit shared across both regions?",
-          answer: "Yes. A student gets 10 answers total, not 10 in each region.",
+          answer: "Yes. A user gets 10 requests total, not 10 in each region.",
         },
       ] : [],
       hiddenRubric: variant.hiddenRubric,
@@ -229,7 +229,7 @@ export class MockGeminiGateway implements GeminiGateway {
           {
             id: "observation-global-requirement",
             category: "requirement",
-            statement: "The candidate requires one shared usage limit for each student.",
+            statement: "The candidate requires one shared usage limit for each user.",
             evidence,
             confidence: 0.99,
           },
@@ -240,12 +240,12 @@ export class MockGeminiGateway implements GeminiGateway {
             description: "The shared usage rule is not represented by the disconnected regional counters.",
             spokenClaim: globalClaim.text,
             boardInterpretation: "The regional counters have no shared-state or synchronization path.",
-            whyItMatters: "A student could receive the full allowance once in each region.",
+            whyItMatters: "A user could receive the full allowance once in each region.",
             evidence,
             confidence: 0.98,
           },
         ],
-        unresolvedQuestions: ["How do the two counters share each student's usage?"],
+        unresolvedQuestions: ["How do the two counters share each user's usage?"],
         updatedCompetencySignals: [
           {
             id: "signal-requirement-consistency",
@@ -258,8 +258,8 @@ export class MockGeminiGateway implements GeminiGateway {
         ],
         recommendedProbe: {
           action: "ask",
-          question: "You want one shared limit, but these regional counters do not exchange updates. What stops a student from using the full limit in both regions?",
-          reason: "This is the clearest mismatch between the student's rule and the current diagram.",
+          question: "You want one shared limit, but these regional counters do not exchange updates. What stops a user from using the full limit in both regions?",
+          reason: "This is the clearest mismatch between the stated rule and the current diagram.",
           focusElementIds: stores.map((store) => store.id),
           urgency: "next_pause",
           confidence: 0.98,
@@ -276,7 +276,7 @@ export class MockGeminiGateway implements GeminiGateway {
       };
       return reasoningStateSchema.parse({
         boardSummary: "The regional quota stores now connect through a coordination component.",
-        candidateApproachSummary: "The candidate revised the design so both regions share student usage.",
+        candidateApproachSummary: "The candidate revised the design so both regions share user usage.",
         observations: [
           {
             id: "observation-coordination-revision",
@@ -364,13 +364,13 @@ export class MockGeminiGateway implements GeminiGateway {
       generatedAt: this.now(),
       problemFraming: section("problem-framing", "The candidate established the central quota requirement."),
       requirementDiscovery: section("requirement-discovery", "The interview surfaced global consistency as a key requirement."),
-      decomposition: section("decomposition", "The board separated the study helper and its usage counter by region."),
+      decomposition: section("decomposition", "The board separated the app and its usage counter by region."),
       technicalCorrectness: section("technical-correctness", detectedInconsistency ? "An initial state-coordination gap was identified." : "No unsupported technical judgment was added."),
       tradeoffReasoning: section("tradeoff-reasoning", "The evidence supports continued practice on consistency and availability trade-offs."),
       adaptabilityUnderChallenge: section("adaptability", candidateRevision ? "The candidate revised the design after the probe." : "No evidence-backed revision was recorded."),
       communication: section("communication", "Spoken requirements were compared with visible architecture evidence."),
       strongestObservedMoment: judgment("strongest-moment", "Strongest observed moment", candidateRevision ? "The candidate made an evidence-linked board revision." : "The candidate stated a concrete system invariant."),
-      mostImportantMissedIssue: judgment("missed-issue", "Most important missed issue", detectedInconsistency ? "The initial design did not show how the US and EU counters shared one student limit." : "More evidence is needed to identify a specific missed issue."),
+      mostImportantMissedIssue: judgment("missed-issue", "Most important missed issue", detectedInconsistency ? "The initial design did not show how the US and EU counters shared one user limit." : "More evidence is needed to identify a specific missed issue."),
       keyDecisionTimeline: timeline,
       boardEvolutionTimeline: timeline.filter((item) => ["board_change", "contradiction", "probe", "revision"].includes(item.kind)).length > 0
         ? timeline.filter((item) => ["board_change", "contradiction", "probe", "revision"].includes(item.kind))

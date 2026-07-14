@@ -19,10 +19,10 @@ export const RATE_LIMITER_IDS = {
 } as const;
 
 export const RATE_LIMITER_PROBLEM_STATEMENT =
-  "Give an AI study helper one shared usage limit.";
+  "Give an app one shared usage limit for each user.";
 
 export const RATE_LIMITER_GLOBAL_CLAIM =
-  "Each student gets one shared usage limit across the US and EU.";
+  "Each user gets one shared usage limit across the US and EU.";
 
 const INITIAL_RAW_ELEMENTS: readonly unknown[] = [
   {
@@ -168,7 +168,7 @@ export const createRateLimiterAnalysisInput = (
   previousReasoningState,
   currentStage: "SOLUTION_CONSTRUCTION",
   recentTranscript: [RATE_LIMITER_GLOBAL_TRANSCRIPT],
-  olderSessionSummary: "The candidate is limiting an AI study helper across two regions.",
+  olderSessionSummary: "The candidate is limiting an app's usage across two regions.",
   hiddenRubric: [
     "Clarify scope and traffic.",
     "Define global versus regional consistency semantics.",

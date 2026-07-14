@@ -482,10 +482,20 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
     return () => window.clearTimeout(timer);
   }, [interactionMode, latestInterviewerTurn, payload, speakText, speechOutputSupported]);
 
+  const stickToBottomRef = useRef(true);
+
+  const handleConversationScroll = useCallback(() => {
+    const log = conversationLogRef.current;
+    if (!log) return;
+    const distanceFromBottom = log.scrollHeight - log.scrollTop - log.clientHeight;
+    stickToBottomRef.current = distanceFromBottom < 80;
+  }, []);
+
   useEffect(() => {
     const log = conversationLogRef.current;
-    if (log) log.scrollTop = log.scrollHeight;
-  }, [lastLiveReply, probe?.question, transcriptMessages.length]);
+    if (!log || !stickToBottomRef.current) return;
+    log.scrollTop = log.scrollHeight;
+  }, [lastLiveReply, probe?.question, transcriptMessages.length, reasoning]);
 
   const handleBoardChange = useCallback((elements: readonly unknown[]) => {
     rawElementsRef.current = elements;
@@ -549,7 +559,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
     );
     if (revised) {
       setReasoningText(
-        "I’ll connect both regional counters to one coordinator so a student cannot use the limit twice.",
+        "I’ll connect both regional counters to one coordinator so a user cannot use the limit twice.",
       );
     }
     frameBoard(api, elements);
@@ -943,7 +953,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
               <p>{voiceListening ? "Listening now" : "Microphone starts muted"}</p>
             </div>}
 
-            <div ref={conversationLogRef} className={styles.conversationLog} aria-label="Interview conversation" aria-live="polite">
+            <div ref={conversationLogRef} onScroll={handleConversationScroll} className={styles.conversationLog} aria-label="Interview conversation" aria-live="polite">
               <article className={`${styles.chatMessage} ${styles.assistantMessage}`} aria-label="Interviewer introduction">
                 <span>Sapphire</span>
                 <p>{displayText(introduction)}</p>
@@ -988,9 +998,15 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
                 id="candidate-reasoning"
                 value={reasoningText}
                 onChange={(event) => setReasoningText(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    void sendReasoning();
+                  }
+                }}
                 rows={3}
                 maxLength={8_000}
-                placeholder="Type your answer"
+                placeholder="Type your answer, then press Enter to send"
               />
               <div className={`${styles.responseActions} ${boardVisible ? "" : styles.textOnlyActions}`}>
                 <button className="button-primary" onClick={sendReasoning} disabled={!reasoningText.trim() || status !== "idle"}>

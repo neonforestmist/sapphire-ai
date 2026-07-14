@@ -8,7 +8,7 @@ Voice is the default conversation mode, but the microphone starts muted. Sapphir
 
 | Interview | Example | Whiteboard |
 | --- | --- | --- |
-| System design | Design a shared API quota for an AI study app | Useful for architecture and data flow |
+| System design | Design a shared API quota for an app | Useful for architecture and data flow |
 | Technical explanation | Explain how you would evaluate an AI assistant | Optional for metrics or a test plan |
 | Case study | Reduce support response time without lowering quality | Optional for a workflow or decision tree |
 | Behavioral | Describe learning an unfamiliar tool quickly | Usually hidden so the conversation stays central |
@@ -51,7 +51,7 @@ Voice is the default conversation mode, but the microphone starts muted. Sapphir
 
 The deterministic acceptance test uses an AI engineering internship prompt:
 
-- The candidate says every student gets one shared limit across the US and EU.
+- The candidate says every user gets one shared limit across the US and EU.
 - The board shows separate regional counters with no coordination path.
 - Sapphire highlights only those counters and asks what prevents double use.
 - The candidate adds a global coordination path.

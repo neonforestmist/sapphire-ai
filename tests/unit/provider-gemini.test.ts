@@ -170,7 +170,7 @@ describe("real interaction boundary", () => {
       experienceLevel: "intern",
     });
 
-    expect(blueprint.problemStatement).toBe("Give an AI study helper one shared usage limit.");
+    expect(blueprint.problemStatement).toBe("Give an app one shared usage limit for each user.");
     expect(blueprint.roleTitle).toBe("AI engineering internship");
     expect(blueprint.hiddenRubric).toContain("Address global versus regional consistency.");
     expect(create).not.toHaveBeenCalled();

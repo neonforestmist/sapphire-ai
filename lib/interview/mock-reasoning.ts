@@ -112,9 +112,9 @@ export const createDeterministicMockReasoning = (
     sharedCoordinator === undefined
   ) {
     return reasoningStateSchema.parse({
-      boardSummary: "The US and EU study-helper services each use an isolated regional counter.",
+      boardSummary: "The US and EU app services each use an isolated regional counter.",
       candidateApproachSummary:
-        "The candidate wants one shared student limit but currently keeps each region's count separate.",
+        "The candidate wants one shared user limit but currently keeps each region's count separate.",
       observations: [
         {
           id: "observation-global-requirement",
@@ -148,7 +148,7 @@ export const createDeterministicMockReasoning = (
           boardInterpretation:
             "The US and EU counters have no visible shared-state or synchronization path.",
           whyItMatters:
-            "A student could receive the full allowance once in the US and again in the EU.",
+            "A user could receive the full allowance once in the US and again in the EU.",
           evidence: {
             transcriptSegmentIds: [transcriptClaim.id],
             boardElementIds: storeIds,
@@ -157,7 +157,7 @@ export const createDeterministicMockReasoning = (
           confidence: 0.97,
         },
       ],
-      unresolvedQuestions: ["How will the two counters share each student's usage?"],
+      unresolvedQuestions: ["How will the two counters share each user's usage?"],
       updatedCompetencySignals: [
         {
           id: "signal-consistency-requirement",
@@ -175,7 +175,7 @@ export const createDeterministicMockReasoning = (
       recommendedProbe: {
         action: "ask",
         question:
-          "You want one shared limit, but these regional counters do not exchange updates. What stops a student from using the full limit in both regions?",
+          "You want one shared limit, but these regional counters do not exchange updates. What stops a user from using the full limit in both regions?",
         reason: "Check whether the candidate notices that the two counters need a coordination path.",
         focusElementIds: storeIds,
         urgency: "next_pause",
@@ -196,7 +196,7 @@ export const createDeterministicMockReasoning = (
       boardSummary:
         "Both regional counters now connect to a shared coordination component.",
       candidateApproachSummary:
-        "The candidate revised the design so both regions share student usage.",
+        "The candidate revised the design so both regions share user usage.",
       observations: [
         {
           id: "observation-coordination-revision",

@@ -47,7 +47,7 @@ test("grounds a rate-limiter contradiction in exact board evidence and records t
   await expect(page.getByRole("table").getByRole("row")).toHaveCount(5);
   await expect(page.getByText("Every career", { exact: true })).toBeVisible();
   await expect(page.getByText(/conversation-only back-and-forth/i)).toBeVisible();
-  await expect(page.getByText("Design one shared usage limit for an AI study helper.")).toHaveCount(0);
+  await expect(page.getByText("Design one shared usage limit for an app.")).toHaveCount(0);
   const formatBox = await page.getByLabel("Interview format").boundingBox();
   const experienceBox = await page.getByLabel("Experience level").boundingBox();
   const guideBox = await page.getByRole("heading", { name: "What each format means" }).boundingBox();
@@ -67,12 +67,12 @@ test("grounds a rate-limiter contradiction in exact board evidence and records t
   await expect(page.getByText(/AI engineering internship, Intern/i)).toBeVisible();
   const conversation = page.getByLabel("Interview conversation");
   await expect(conversation.getByText(/Hey there! I’ll guide your AI engineering internship practice interview/i)).toBeVisible();
-  await expect(conversation.getByText("Give an AI study helper one shared usage limit.")).toBeVisible();
+  await expect(conversation.getByText("Give an app one shared usage limit for each user.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Voice", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "Text", exact: true })).toHaveAttribute("aria-pressed", "false");
   await expect(page.getByRole("button", { name: "Unmute microphone", exact: true })).toBeVisible();
   await page.getByRole("button", { name: /load example board/i }).click();
-  await page.getByLabel("Message Sapphire").fill("Each student gets one shared usage limit across the US and EU.");
+  await page.getByLabel("Message Sapphire").fill("Each user gets one shared usage limit across the US and EU.");
   await page.getByRole("button", { name: /send message/i }).click();
   await expect(page.getByLabel("Candidate message").last()).toContainText(/shared usage limit/i);
 
@@ -160,8 +160,9 @@ test("keeps a non-technical behavioral interview conversational in text or voice
   await expect(page.getByRole("button", { name: "Text", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "Unmute microphone", exact: true })).toHaveCount(0);
 
-  await page.getByLabel("Message Sapphire").fill("I learned a new scheduling tool during a busy week and made a short guide for my team.");
-  await page.getByRole("button", { name: /send message/i }).click();
+  const behavioralAnswer = page.getByLabel("Message Sapphire");
+  await behavioralAnswer.fill("I learned a new scheduling tool during a busy week and made a short guide for my team.");
+  await behavioralAnswer.press("Enter");
   await expect(conversation.getByText(/What did you personally do/i)).toBeVisible();
   await expect.poll(() => page.evaluate(
     () => (window as Window & { __spokenTurns?: string[] }).__spokenTurns?.length ?? 0,

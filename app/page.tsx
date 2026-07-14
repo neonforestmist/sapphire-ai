@@ -55,18 +55,18 @@ export default function LandingPage() {
               <div className={`${styles.arrow} ${styles.arrowEu}`} />
               <div className={styles.focusLabel}>2 elements referenced</div>
               <div className={styles.probeCard}>
-                <p>You want one limit. What stops a student from using it in both regions?</p>
+                <p>You want one limit. What stops a user from using it in both regions?</p>
               </div>
             </div>
             <aside className={styles.mockSidebar}>
               <h2>AI engineering internship</h2>
               <div className={styles.caption}>
                 <span>Current prompt</span>
-                <p>Give an AI study helper one shared usage limit.</p>
+                <p>Give an app one shared usage limit for each user.</p>
               </div>
               <div className={styles.caption}>
                 <span>Candidate explanation</span>
-                <p>Each student gets one shared limit across the US and EU.</p>
+                <p>Each user gets one shared limit across the US and EU.</p>
               </div>
               <div className={styles.analysisState}><span />Transcript and board ready</div>
             </aside>
