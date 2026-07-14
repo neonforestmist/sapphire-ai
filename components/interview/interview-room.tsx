@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
 import { Brand } from "@/components/brand";
@@ -23,6 +23,7 @@ import {
 } from "@/lib/whiteboard/rate-limiter-fixture";
 import { createInitialBoardDiff } from "@/lib/whiteboard/semantic-diff";
 import { useGeminiLive } from "@/lib/live/use-gemini-live";
+import { useBrowserVoice } from "@/lib/live/use-browser-voice";
 import {
   createLiveToolDispatcher,
   LiveToolApplicationError,
@@ -60,6 +61,18 @@ type AnalyzePayload = {
 };
 
 type ActionStatus = "idle" | "sending" | "analyzing" | "finishing";
+
+function boardVersionSignature(elements: readonly unknown[]): string {
+  return elements
+    .flatMap((element) => {
+      if (!element || typeof element !== "object") return [];
+      const candidate = element as { id?: unknown; version?: unknown; isDeleted?: unknown };
+      if (typeof candidate.id !== "string") return [];
+      return [`${candidate.id}:${String(candidate.version ?? 0)}:${candidate.isDeleted === true ? 1 : 0}`];
+    })
+    .sort()
+    .join("|");
+}
 
 function frameBoard(
   api: ExcalidrawImperativeAPI,
@@ -251,6 +264,13 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
   const [boardReady, setBoardReady] = useState(false);
   const [boardVisible, setBoardVisible] = useState(true);
   const [lastLiveReply, setLastLiveReply] = useState<string | null>(null);
+  const [boardIdleVersion, setBoardIdleVersion] = useState(0);
+  const [speechOutputSupported, setSpeechOutputSupported] = useState(false);
+  const boardPauseTimerRef = useRef<number | null>(null);
+  const latestBoardSignatureRef = useRef("");
+  const lastAnalyzedBoardSignatureRef = useRef("");
+  const automaticAnalysisRef = useRef(false);
+  const conversationLogRef = useRef<HTMLDivElement | null>(null);
 
   const loadSession = useCallback(async () => {
     try {
@@ -272,6 +292,18 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
     const timer = window.setTimeout(() => void loadSession(), 0);
     return () => window.clearTimeout(timer);
   }, [loadSession]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setSpeechOutputSupported(
+        "speechSynthesis" in window && "SpeechSynthesisUtterance" in window,
+      );
+    }, 0);
+    return () => {
+      window.clearTimeout(timer);
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
 
   const persistLiveTranscript = useCallback(async (
     speaker: "candidate" | "interviewer",
@@ -357,8 +389,52 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
     onToolCall: dispatchLiveTool,
   });
 
+  const browserVoice = useBrowserVoice({
+    onDraft: setReasoningText,
+    onFinalTranscript: (text) => persistLiveTranscript("candidate", text),
+  });
+
+  const transcriptMessages = useMemo(() => {
+    if (!payload) return [];
+    return payload.events.flatMap((event) =>
+      event.type === "transcript.input.finalized" || event.type === "transcript.output.finalized"
+        ? [event.payload.segment]
+        : [],
+    );
+  }, [payload]);
+  const hasPersistedLiveReply = lastLiveReply
+    ? transcriptMessages.some(
+        (segment) => segment.speaker === "interviewer" && segment.text === lastLiveReply,
+      )
+    : false;
   const contradiction = reasoning?.contradictions[0] ?? null;
   const probe = reasoning?.recommendedProbe ?? null;
+
+  useEffect(() => {
+    const log = conversationLogRef.current;
+    if (log) log.scrollTop = log.scrollHeight;
+  }, [lastLiveReply, probe?.question, transcriptMessages.length]);
+
+  const handleBoardChange = useCallback((elements: readonly unknown[]) => {
+    rawElementsRef.current = elements;
+    const signature = boardVersionSignature(elements);
+    if (!signature || signature === latestBoardSignatureRef.current) return;
+    latestBoardSignatureRef.current = signature;
+    if (boardPauseTimerRef.current !== null) {
+      window.clearTimeout(boardPauseTimerRef.current);
+    }
+    boardPauseTimerRef.current = window.setTimeout(() => {
+      boardPauseTimerRef.current = null;
+      setBoardIdleVersion((version) => version + 1);
+    }, 1_600);
+  }, []);
+
+  useEffect(() => () => {
+    if (boardPauseTimerRef.current !== null) {
+      window.clearTimeout(boardPauseTimerRef.current);
+    }
+  }, []);
+
   const focusLabels = useMemo(() => {
     const labels = new Map<string, string>([
       [RATE_LIMITER_IDS.usRedis, "US counter"],
@@ -437,6 +513,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
       setTranscriptSent(true);
       setNotice("Reasoning captured as finalized transcript evidence.");
       void live.sendText(text);
+      setReasoningText("");
       await loadSession();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not capture reasoning.");
@@ -495,7 +572,9 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
     return () => window.removeEventListener("keydown", revealOnShortcut);
   }, [focusedIds.length, revealFocusedElements]);
 
-  async function analyzeBoard() {
+  async function analyzeBoard(
+    triggerReason = "Candidate paused after a meaningful board change.",
+  ) {
     const api = boardApiRef.current;
     if (!api || status !== "idle") return;
     if (!transcriptSent) {
@@ -521,7 +600,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
             scene,
             diff: createInitialBoardDiff(scene),
             boardImage,
-            triggerReason: "Candidate paused after a meaningful board change.",
+            triggerReason,
           }),
         }),
       );
@@ -543,12 +622,68 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
           ? `Mismatch detected in analysis v${result.analysisVersion}. Exact board evidence is selected.`
           : `Analysis v${result.analysisVersion} recorded the board revision.`,
       );
+      lastAnalyzedBoardSignatureRef.current = latestBoardSignatureRef.current;
       await loadSession();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not analyze the board.");
     } finally {
       setStatus("idle");
     }
+  }
+
+  const analyzeBoardAfterPause = useEffectEvent(analyzeBoard);
+
+  useEffect(() => {
+    if (
+      !payload ||
+      payload.blueprint.interviewType !== "system-design" ||
+      !scenarioLoaded ||
+      !boardReady ||
+      !transcriptSent ||
+      status !== "idle" ||
+      automaticAnalysisRef.current ||
+      !latestBoardSignatureRef.current ||
+      latestBoardSignatureRef.current === lastAnalyzedBoardSignatureRef.current
+    ) {
+      return;
+    }
+    automaticAnalysisRef.current = true;
+    setNotice("You paused after changing the board. Sapphire is checking the conversation against it.");
+    void analyzeBoardAfterPause("Candidate finished a meaningful board edit and paused.")
+      .finally(() => {
+        automaticAnalysisRef.current = false;
+      });
+  }, [
+    boardIdleVersion,
+    boardReady,
+    payload,
+    scenarioLoaded,
+    status,
+    transcriptSent,
+  ]);
+
+  async function toggleVoice() {
+    if (payload?.liveEnabled) {
+      await (live.isListening ? live.mute() : live.unmute());
+      return;
+    }
+    if (browserVoice.isListening) {
+      browserVoice.stop();
+      return;
+    }
+    const seed = transcriptSent ? reasoningText : "";
+    if (!transcriptSent) setReasoningText("");
+    await browserVoice.start(seed);
+  }
+
+  function playCurrentQuestion() {
+    if (!payload || !speechOutputSupported) return;
+    const text = probe?.question ?? lastLiveReply ?? payload.blueprint.problemStatement;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.96;
+    utterance.pitch = 1;
+    window.speechSynthesis.speak(utterance);
   }
 
   async function finishInterview() {
@@ -584,6 +719,15 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
       </main>
     );
   }
+
+  const voiceListening = payload.liveEnabled ? live.isListening : browserVoice.isListening;
+  const voiceAvailable = payload.liveEnabled || browserVoice.supported;
+  const voiceError = payload.liveEnabled ? live.error : browserVoice.error;
+  const interviewerMode = payload.liveEnabled
+    ? "Gemini Live voice and text"
+    : browserVoice.supported
+      ? "Browser voice and text"
+      : "Text interview";
 
   return (
     <main className={styles.page}>
@@ -626,9 +770,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
                 boardApiRef.current = api;
                 setBoardReady(true);
               }}
-              onChange={(elements) => {
-                rawElementsRef.current = elements;
-              }}
+              onChange={handleBoardChange}
               initialData={{
                 appState: {
                   theme: "dark",
@@ -665,44 +807,95 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
           <section className={styles.interviewerCard}>
             <div className={styles.interviewerHead}>
               <div className={styles.avatar}>S</div>
-              <div><strong>Sapphire interviewer</strong><span>{payload.liveEnabled ? "Text and audio ready" : "Text ready, Live audio unavailable"}</span></div>
+              <div><strong>Sapphire interviewer</strong><span>{interviewerMode}</span></div>
             </div>
             <div className={styles.liveControls}>
               <button
                 type="button"
-                className={live.isListening ? styles.micLive : styles.micMuted}
-                onClick={() => void (live.isListening ? live.mute() : live.unmute())}
-                disabled={!payload.liveEnabled || live.status === "connecting"}
-                aria-pressed={live.isListening}
+                className={voiceListening ? styles.micLive : styles.micMuted}
+                onClick={() => void toggleVoice()}
+                disabled={!voiceAvailable || (payload.liveEnabled && live.status === "connecting")}
+                aria-pressed={voiceListening}
               >
-                <span aria-hidden="true">{live.isListening ? "■" : "●"}</span>
-                {!payload.liveEnabled
+                <span aria-hidden="true">{voiceListening ? "■" : "●"}</span>
+                {!voiceAvailable
                   ? "Voice unavailable"
-                  : live.status === "connecting"
+                  : payload.liveEnabled && live.status === "connecting"
                     ? "Connecting voice"
-                    : live.isListening
+                    : voiceListening
                       ? "Mute microphone"
                       : "Unmute microphone"}
               </button>
-              <p>{live.isListening ? "Listening now" : "Microphone starts muted"}</p>
+              <button
+                type="button"
+                className={styles.hearButton}
+                onClick={playCurrentQuestion}
+                disabled={!speechOutputSupported}
+              >
+                Hear question
+              </button>
+              <p>{voiceListening ? "Listening now" : "Microphone starts muted"}</p>
             </div>
-            {lastLiveReply && (
-              <div className={styles.liveReply} aria-live="polite">
-                <strong>Sapphire</strong>
-                <p>{displayText(lastLiveReply)}</p>
+
+            <div ref={conversationLogRef} className={styles.conversationLog} aria-label="Interview conversation" aria-live="polite">
+              <article className={`${styles.chatMessage} ${styles.assistantMessage}`}>
+                <span>Sapphire</span>
+                <p>{displayText(payload.blueprint.problemStatement)}</p>
+              </article>
+
+              {transcriptMessages.map((segment) => (
+                <article
+                  className={`${styles.chatMessage} ${segment.speaker === "candidate" ? styles.candidateMessage : styles.assistantMessage}`}
+                  key={segment.id}
+                  aria-label={segment.speaker === "candidate" ? "Candidate message" : "Interviewer message"}
+                >
+                  <span>{segment.speaker === "candidate" ? "You" : "Sapphire"}</span>
+                  <p>{displayText(segment.text)}</p>
+                </article>
+              ))}
+
+              {lastLiveReply && !hasPersistedLiveReply && (
+                <article className={`${styles.chatMessage} ${styles.assistantMessage}`}>
+                  <span>Sapphire</span>
+                  <p>{displayText(lastLiveReply)}</p>
+                </article>
+              )}
+
+              {probe?.question ? (
+                <article
+                  className={`${styles.chatMessage} ${styles.assistantMessage} ${styles.followUpMessage}`}
+                  data-testid="interviewer-probe"
+                >
+                  <span>{contradiction ? "Sapphire noticed a mismatch" : "Sapphire follow-up"}</span>
+                  <p>{displayText(probe.question)}</p>
+                </article>
+              ) : (
+                <article className={`${styles.chatMessage} ${styles.assistantMessage} ${styles.waitingMessage}`}>
+                  <span className={styles.wave} aria-hidden="true"><i /><i /><i /></span>
+                  <p>{boardVisible ? "Talk or type while you draw. I’ll respond after you pause." : "Talk or type when you are ready. You can open the board whenever it helps."}</p>
+                </article>
+              )}
+            </div>
+
+            <div className={styles.chatComposer}>
+              <label htmlFor="candidate-reasoning">Message Sapphire</label>
+              <textarea
+                id="candidate-reasoning"
+                value={reasoningText}
+                onChange={(event) => setReasoningText(event.target.value)}
+                rows={3}
+                maxLength={8_000}
+                placeholder="Type your answer"
+              />
+              <div className={`${styles.responseActions} ${boardVisible ? "" : styles.textOnlyActions}`}>
+                <button className="button-primary" onClick={sendReasoning} disabled={!reasoningText.trim() || status !== "idle"}>
+                  {status === "sending" ? "Sending…" : "Send message"}
+                </button>
+                {boardVisible && <button className="button-secondary" onClick={() => void analyzeBoard()} disabled={status !== "idle" || !scenarioLoaded}>
+                  {status === "analyzing" ? "Checking board…" : "Analyze now"}
+                </button>}
               </div>
-            )}
-            {probe?.question ? (
-              <div className={styles.probe} data-testid="interviewer-probe">
-                <span>{contradiction ? "Contradiction probe" : "Follow-up"}</span>
-                <p>{displayText(probe.question)}</p>
-              </div>
-            ) : (
-              <div className={styles.waitingProbe}>
-                <span className={styles.wave}><i /><i /><i /></span>
-                <p>{boardVisible ? "I’m watching for a meaningful mismatch between what you say and what you draw." : "Type an answer or unmute when you are ready. The board remains available if you need it."}</p>
-              </div>
-            )}
+            </div>
           </section>
 
           <section className={styles.evidenceCard}>
@@ -731,34 +924,12 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
             )}
           </section>
 
-          <section className={styles.responseCard}>
-            <div className={styles.sectionHeading}>
-              <label htmlFor="candidate-reasoning">Your reasoning</label>
-              <small>finalized text</small>
-            </div>
-            <textarea
-              id="candidate-reasoning"
-              value={reasoningText}
-              onChange={(event) => setReasoningText(event.target.value)}
-              rows={4}
-              maxLength={8_000}
-            />
-            <div className={`${styles.responseActions} ${boardVisible ? "" : styles.textOnlyActions}`}>
-              <button className="button-secondary" onClick={sendReasoning} disabled={!reasoningText.trim() || status !== "idle"}>
-                {status === "sending" ? "Capturing…" : "Send reasoning"}
-              </button>
-              {boardVisible && <button className="button-primary" onClick={analyzeBoard} disabled={status !== "idle" || !scenarioLoaded}>
-                {status === "analyzing" ? "Analyzing evidence…" : "Analyze board"}
-              </button>}
-            </div>
-          </section>
-
-          {(notice || error || live.error) && (
-            <p className={(error || live.error) ? styles.error : styles.notice} role={(error || live.error) ? "alert" : "status"}>
-              {displayText(error ?? live.error ?? notice ?? "")}
+          {(notice || error || voiceError) && (
+            <p className={(error || voiceError) ? styles.error : styles.notice} role={(error || voiceError) ? "alert" : "status"}>
+              {displayText(error ?? voiceError ?? notice ?? "")}
             </p>
           )}
-          <p className={styles.privacy}>Board images are private session artifacts. Raw microphone audio is never stored.</p>
+          <p className={styles.privacy}>Board images are private session artifacts. Sapphire never stores raw microphone audio. Browser voice may use your browser&apos;s speech service when Gemini Live is off.</p>
         </aside>
       </div>
     </main>

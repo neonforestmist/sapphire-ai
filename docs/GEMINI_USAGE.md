@@ -32,12 +32,12 @@ The official Gemini 3.5 Flash guide recommends `@google/genai` 2.0.0 or later fo
 ### Current implementation status
 
 - Implemented: `@google/genai` 2.11.0 reasoning gateway, deterministic mock gateway, strict Interactions parsing/repair, server ephemeral-token creation, browser Live session adapter, 16 kHz PCM microphone capture, 24 kHz playback, finalized caption persistence, seven strict Live tools, application dispatcher, and connection/recovery reducer.
-- Functional today: typed text fallback and direct board analysis, independent of Live. The deployed Cloud Run service is configured with `GEMINI_MODE=real` and `ENABLE_GEMINI_LIVE=false`.
+- Functional today: a persistent interview conversation, typed text, board-idle analysis, and direct board analysis, all independent of Live. When Live is disabled, supported browsers also provide opt-in speech recognition and read-aloud; this is a browser service, not Gemini audio. The deployed Cloud Run service is configured with `GEMINI_MODE=real` and `ENABLE_GEMINI_LIVE=false`.
 - Quota-preserving demo setup: the fixed `demo` / `global-rate-limiter` blueprint is assembled deterministically even inside `RealGeminiGateway`; it does not consume a Gemini request.
 - Authoritative analysis: `analyzeBoard` in real mode always calls Gemini and never silently substitutes deterministic reasoning. A provider failure remains a visible, recoverable analysis error and the board stays usable.
 - Report resilience: only a retryable/transient final-report failure may use a schema-validated deterministic report assembled from already validated evidence. That report includes the explicit limitation: “Gemini final-report generation was temporarily unavailable. This report was assembled from validated session evidence.” Authentication, permission, validation, and other non-retryable errors do not take this path.
 - Verified locally: a bounded Free Tier typed turn returned 18 native-audio parts and output transcription; the rendered browser persisted and displayed the finalized caption. An opt-in Chrome check used a synthetic microphone and reached the listening state only after unmute.
-- Not implemented: automatic networked reconnect and resumption execution, deterministic mock audio transport, and long-session real-provider audio verification.
+- Not implemented: automatic networked reconnect and resumption execution, deterministic Gemini mock audio transport, and long-session real-provider audio verification. Browser speech is the credential-free local fallback, not a simulation of Gemini Live.
 - Provider state: a server-only credential is available and real requests have reached the Gemini API. The latest observed responses were Free Tier quota (`429`) and upstream high-demand (`500`) errors, so no successful real flagship analysis is claimed here. See `docs/QA_REPORT.md` for the latest smoke evidence.
 
 ### Free Tier authorization and quota boundary

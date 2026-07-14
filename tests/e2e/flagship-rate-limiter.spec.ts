@@ -60,12 +60,13 @@ test("grounds a rate-limiter contradiction in exact board evidence and records t
   const sessionId = page.url().split("/").at(-1)!;
 
   await expect(page.getByText(/AI engineering internship, Intern/i)).toBeVisible();
-  await expect(page.getByText("Give an AI study helper one shared usage limit.")).toBeVisible();
+  const conversation = page.getByLabel("Interview conversation");
+  await expect(conversation.getByText("Give an AI study helper one shared usage limit.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Unmute microphone", exact: true })).toBeVisible();
   await page.getByRole("button", { name: /load example board/i }).click();
-  await page.getByRole("button", { name: /send reasoning/i }).click();
-  await expect(page.getByText(/reasoning captured as finalized transcript evidence/i)).toBeVisible();
+  await page.getByRole("button", { name: /send message/i }).click();
+  await expect(page.getByLabel("Candidate message").last()).toContainText(/shared usage limit/i);
 
-  await page.getByRole("button", { name: /^analyze board$/i }).click();
   const probe = page.getByTestId("interviewer-probe");
   await expect(probe).toContainText("one shared limit");
   await expect(probe).toContainText("regional counters");
@@ -73,8 +74,6 @@ test("grounds a rate-limiter contradiction in exact board evidence and records t
   await expect(page.getByText(/High-confidence mismatch/i)).toBeVisible();
 
   await page.getByRole("button", { name: /add coordination path/i }).click();
-  await page.getByRole("button", { name: /send reasoning/i }).click();
-  await page.getByRole("button", { name: /^analyze board$/i }).click();
   await expect(page.getByText(/Revision recognized/i)).toBeVisible();
   await expect(page.getByText(/coordination path now connects both regional counters/i)).toBeVisible();
 

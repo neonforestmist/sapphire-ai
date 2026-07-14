@@ -14,7 +14,7 @@ Last updated: 2026-07-13
 
 ## System architecture
 
-The verified local runtime uses text input, optional Excalidraw, direct analysis APIs, the deterministic gateway, memory repositories, and an implemented browser Live transport. A bounded local typed-to-audio turn and synthetic-microphone capture check passed. The private Cloud Run revision keeps Live disabled.
+The verified local runtime uses a persistent interviewer conversation, text input, optional Excalidraw, board-idle analysis, direct analysis APIs, the deterministic gateway, memory repositories, a free browser-speech fallback, and an implemented Gemini Live transport. A bounded local typed-to-audio turn and synthetic-microphone capture check passed. The private Cloud Run revision keeps Live disabled.
 
 ~~~mermaid
 flowchart LR
@@ -55,7 +55,7 @@ flowchart LR
 
 | Boundary | Responsibilities |
 | --- | --- |
-| Browser | Board interaction, local continuity, focus overlays, independent text turns, muted-by-default microphone capture, Live audio playback, captions, and interruption clearing |
+| Browser | Persistent interview conversation, board interaction, local continuity, focus overlays, independent text turns, meaningful-edit pause detection, muted-by-default browser or Live microphone capture, read-aloud/Live audio playback, captions, and interruption clearing |
 | Server routes | Ownership checks, Zod validation, size/rate/concurrency limits, sanitized errors, ephemeral-token minting |
 | Interview orchestrator | Legal stage transitions, event ordering, stale-version rejection, confidence policy, persistence, report assembly |
 | Gemini reasoning gateway | Provider request/response translation, timeout/retry/repair policy, model-output parsing |
@@ -97,6 +97,7 @@ Tool execution is synchronous for `gemini-3.1-flash-live-preview`. The browser n
 ~~~mermaid
 flowchart TD
     Change["Excalidraw onChange"]
+    Pause["Meaningful edit pauses for 1.6 seconds"]
     Normalize["Normalize stable scene elements"]
     Diff["Compute semantic diff"]
     Meaningful{"Meaningful change<br/>or explicit request?"}
@@ -114,7 +115,7 @@ flowchart TD
     Focus["Return exact focus IDs and probe"]
     Recover["Recoverable error; interview continues"]
 
-    Change --> Normalize --> Diff --> Meaningful
+    Change --> Pause --> Normalize --> Diff --> Meaningful
     Meaningful -->|"no"| Change
     Meaningful -->|"yes"| Debounce --> Export --> Context --> Request --> Validate --> Repair
     Repair -->|"yes"| IDs
