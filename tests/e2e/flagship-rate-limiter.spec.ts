@@ -43,6 +43,7 @@ test("grounds a rate-limiter contradiction in exact board evidence and records t
   await expect(page.getByLabel("Target role")).toHaveValue("AI engineering internship");
   await expect(page.getByRole("heading", { name: "What each format means" })).toBeVisible();
   await expect(page.getByRole("table").getByRole("row")).toHaveCount(5);
+  await expect(page.getByText("Design one shared usage limit for an AI study helper.")).toHaveCount(0);
   const formatBox = await page.getByLabel("Interview format").boundingBox();
   const experienceBox = await page.getByLabel("Experience level").boundingBox();
   const guideBox = await page.getByRole("heading", { name: "What each format means" }).boundingBox();

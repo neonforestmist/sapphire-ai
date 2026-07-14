@@ -37,25 +37,6 @@ const INTERVIEW_FORMATS: Array<{
   },
 ];
 
-const PRACTICE_EXAMPLES: Record<InterviewType, { title: string; description: string }> = {
-  "system-design": {
-    title: "Design one shared usage limit for an AI study helper.",
-    description: "Talk through the architecture and use the board when a diagram helps.",
-  },
-  "technical-explanation": {
-    title: "Explain how you would evaluate an AI assistant before launch.",
-    description: "A conversational technical interview with the board available when useful.",
-  },
-  "case-study": {
-    title: "Help a support team reduce response time without lowering quality.",
-    description: "Structure the problem aloud, test assumptions, and sketch only if it adds clarity.",
-  },
-  behavioral: {
-    title: "Describe a time you learned an unfamiliar tool quickly.",
-    description: "A voice-first practice round that works without opening the whiteboard.",
-  },
-};
-
 export function InterviewSetup() {
   const router = useRouter();
   const [interviewType, setInterviewType] = useState<InterviewType>("system-design");
@@ -167,11 +148,6 @@ export function InterviewSetup() {
               <input required value={targetRole} maxLength={120} onChange={(event) => setTargetRole(event.target.value)} />
               <small>Sapphire uses this role in the interview blueprint.</small>
             </label>
-          </div>
-
-          <div className={styles.scenario}>
-            <h3>{PRACTICE_EXAMPLES[interviewType].title}</h3>
-            <p>{PRACTICE_EXAMPLES[interviewType].description}</p>
           </div>
 
           <label className={styles.consent}>
