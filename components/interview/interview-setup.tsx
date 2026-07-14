@@ -136,34 +136,38 @@ export function InterviewSetup() {
                 <span className={styles.selectChevron} aria-hidden="true" />
               </div>
             </label>
+
+            <section className={styles.formatGuide} aria-labelledby="format-guide-heading">
+              <h3 id="format-guide-heading">
+                <span className={styles.infoIcon} aria-hidden="true">i</span>
+                What each format means
+              </h3>
+              <div className={styles.formatTableFrame}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th scope="col">Format</th>
+                      <th scope="col">What you practice</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {INTERVIEW_FORMATS.map((format) => (
+                      <tr className={format.value === interviewType ? styles.selectedFormat : undefined} key={format.value}>
+                        <th scope="row">{format.label}</th>
+                        <td>{format.description}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
             <label className={`${styles.inputField} ${styles.roleField}`}>
               <span>Target role</span>
               <input required value={targetRole} maxLength={120} onChange={(event) => setTargetRole(event.target.value)} />
               <small>Sapphire uses this role in the interview blueprint.</small>
             </label>
           </div>
-
-          <section className={styles.formatGuide} aria-labelledby="format-guide-heading">
-            <h3 id="format-guide-heading">What each format means</h3>
-            <div className={styles.formatTableFrame}>
-              <table>
-                <thead>
-                  <tr>
-                    <th scope="col">Format</th>
-                    <th scope="col">What you practice</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {INTERVIEW_FORMATS.map((format) => (
-                    <tr className={format.value === interviewType ? styles.selectedFormat : undefined} key={format.value}>
-                      <th scope="row">{format.label}</th>
-                      <td>{format.description}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
 
           <div className={styles.scenario}>
             <h3>{PRACTICE_EXAMPLES[interviewType].title}</h3>

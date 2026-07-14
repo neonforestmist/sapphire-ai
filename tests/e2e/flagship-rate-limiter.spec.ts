@@ -45,9 +45,14 @@ test("grounds a rate-limiter contradiction in exact board evidence and records t
   await expect(page.getByRole("table").getByRole("row")).toHaveCount(5);
   const formatBox = await page.getByLabel("Interview format").boundingBox();
   const experienceBox = await page.getByLabel("Experience level").boundingBox();
+  const guideBox = await page.getByRole("heading", { name: "What each format means" }).boundingBox();
+  const roleBox = await page.getByLabel("Target role").boundingBox();
   expect(formatBox).not.toBeNull();
   expect(experienceBox).not.toBeNull();
+  expect(guideBox).not.toBeNull();
+  expect(roleBox).not.toBeNull();
   expect(Math.abs(formatBox!.y - experienceBox!.y)).toBeLessThanOrEqual(1);
+  expect(guideBox!.y + guideBox!.height).toBeLessThan(roleBox!.y);
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: /^start interview$/i }).click();
   await expect(page).toHaveURL(/\/interview\/session-[A-Za-z0-9_-]+$/);
