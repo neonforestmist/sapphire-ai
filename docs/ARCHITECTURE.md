@@ -4,7 +4,7 @@ Last updated: 2026-07-13
 
 ## Design principles
 
-- Text and microphone audio share one interview session. The whiteboard is optional except where visual reasoning is the point of the exercise.
+- Voice and transcript are the default presentation, with an in-session quiet-text switch. Typed and microphone input share the same interview session. The whiteboard is optional except where visual reasoning is the point of the exercise.
 - Gemini interprets observable multimodal evidence and recommends a probe.
 - Deterministic application code owns identity, permissions, validation, state transitions, persistence, rendering, and deletion.
 - The Live interviewer is conversational, not the authoritative scoring engine.
@@ -55,7 +55,7 @@ flowchart LR
 
 | Boundary | Responsibilities |
 | --- | --- |
-| Browser | Persistent interview conversation, board interaction, local continuity, focus overlays, independent text turns, meaningful-edit pause detection, muted-by-default browser or Live microphone capture, read-aloud/Live audio playback, captions, and interruption clearing |
+| Browser | Natural role-aware introduction, persistent interview conversation, Voice/Text segment, board interaction, local continuity, focus overlays, independent text turns, meaningful-edit pause detection, muted-by-default browser or Live microphone capture, automatic read-aloud/Live audio playback, captions, and interruption clearing |
 | Server routes | Ownership checks, Zod validation, size/rate/concurrency limits, sanitized errors, ephemeral-token minting |
 | Interview orchestrator | Legal stage transitions, event ordering, stale-version rejection, confidence policy, persistence, report assembly |
 | Gemini reasoning gateway | Provider request/response translation, timeout/retry/repair policy, model-output parsing |

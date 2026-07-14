@@ -2,7 +2,7 @@
 
 SapphireAI is a multimodal interview practice app. Type or speak in the same session, open the whiteboard when it helps, and get follow-up questions grounded in what you actually said and drew.
 
-The microphone starts muted. Text always remains available. In local mock mode, supported browsers provide speech-to-text and read-aloud without Gemini credentials. Raw microphone audio is not stored by SapphireAI.
+Voice is the default conversation mode, but the microphone starts muted. Sapphire introduces the role naturally and reads interviewer turns aloud while keeping their transcript in chat; users can still type, speak, or switch to a quiet text conversation. In local mock mode, supported browsers provide speech-to-text and read-aloud without Gemini credentials. Raw microphone audio is not stored by SapphireAI.
 
 ## Where it helps
 
@@ -28,7 +28,7 @@ The microphone starts muted. Text always remains available. In local mock mode, 
 
 ## The product loop
 
-1. Choose the interview type, target role, and experience level.
+1. Choose the interview type, enter any target role, and set the experience level.
 2. Answer with text, microphone audio, or both.
 3. Show or hide the Excalidraw whiteboard at any point.
 4. After a meaningful board edit pauses, Sapphire compares finalized transcript evidence with stable board elements.

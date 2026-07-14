@@ -45,7 +45,7 @@ The full local gate passed on 2026-07-13.
 | `pnpm lint` | Pass | ESLint exited 0 on the final source tree |
 | `pnpm typecheck` | Pass | Strict `tsc --noEmit` exited 0 |
 | `pnpm test` | Pass | 79 Vitest unit/integration tests passed |
-| `pnpm test:e2e` | Pass | 3 local Playwright tests passed; the opt-in real Live microphone smoke remained skipped |
+| `pnpm test:e2e` | Pass | 4 local Playwright tests passed; the opt-in real Live microphone smoke remained skipped |
 | `pnpm build` | Pass | Next.js production build compiled, typechecked, generated routes, and exited 0 |
 | `pnpm audit --prod --audit-level high` | Pass | No known production vulnerabilities after pinned transitive security upgrades |
 | Cloud Build | Pass | Final patched build succeeded |
@@ -85,7 +85,7 @@ The final Playwright run reused the optimized local production server and passed
 
 The optimized production UI was checked in Chrome at desktop and mobile sizes. The verified journey includes:
 
-- landing hierarchy, four interview formats, role, experience-level setup, consent gating, and one mixed text/audio session;
+- landing hierarchy, four interview formats with cross-career guidance, an initially blank role, experience-level setup, consent gating, and one mixed text/audio session;
 - a custom `Machine learning engineer` target and `Senior` level reaching the generated interview room;
 - all initial rate-limiter nodes and arrows fitting in the Excalidraw camera;
 - exact `US Redis + EU Redis` contradiction focus without hiding the surrounding topology;
@@ -93,7 +93,7 @@ The optimized production UI was checked in Chrome at desktop and mobile sizes. T
 - report defaulting to the contradiction evidence;
 - replay preserving the complete multiline `Global quota coordinator` label;
 - visible keyboard focus, muted microphone state, optional-board panel layout, and honest disabled Live state when the server flag is false;
-- a persistent interviewer/candidate conversation, browser-voice controls, and automatic contradiction analysis after the candidate stops drawing; and
+- a natural role-aware introduction, persistent interviewer/candidate conversation, default Voice presentation with automatic read-aloud and visible transcript, an in-session Text switch, browser-voice controls, and automatic contradiction analysis after the candidate stops drawing; and
 - a 390 by 844 viewport with no horizontal overflow and a 44 px primary action.
 
 No unexplained browser console error was observed in the inspected local journey. Because the Cloud Run service is intentionally private, deployed browser automation used an authenticated local proxy instead of a public URL.

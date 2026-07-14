@@ -14,33 +14,38 @@ const INTERVIEW_FORMATS: Array<{
   value: InterviewType;
   label: string;
   description: string;
+  careers: string[];
 }> = [
   {
     value: "system-design",
     label: "System design",
     description: "Plan how parts of a technical system work together and explain the trade-offs.",
+    careers: ["Software & IT", "Data", "Cybersecurity"],
   },
   {
     value: "technical-explanation",
     label: "Technical explanation",
     description: "Teach a technical idea clearly and respond to follow-up questions.",
+    careers: ["Engineering", "Science", "Healthcare"],
   },
   {
     value: "case-study",
     label: "Case study",
     description: "Work through an open-ended business problem and recommend a practical solution.",
+    careers: ["Business", "Consulting", "Product & marketing"],
   },
   {
     value: "behavioral",
     label: "Behavioral",
-    description: "Use a real past experience to show how you handled a situation.",
+    description: "Have a conversation-only back-and-forth about your real experiences, decisions, teamwork, and challenges—no whiteboard needed.",
+    careers: ["Every career"],
   },
 ];
 
 export function InterviewSetup() {
   const router = useRouter();
   const [interviewType, setInterviewType] = useState<InterviewType>("system-design");
-  const [targetRole, setTargetRole] = useState("AI engineering internship");
+  const [targetRole, setTargetRole] = useState("");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("intern");
   const [consent, setConsent] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -135,7 +140,12 @@ export function InterviewSetup() {
                     {INTERVIEW_FORMATS.map((format) => (
                       <tr className={format.value === interviewType ? styles.selectedFormat : undefined} key={format.value}>
                         <th scope="row">{format.label}</th>
-                        <td>{format.description}</td>
+                        <td>
+                          <p>{format.description}</p>
+                          <div className={styles.careerPills} aria-label={`Good for ${format.careers.join(", ")}`}>
+                            {format.careers.map((career) => <span key={career}>{career}</span>)}
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -145,8 +155,14 @@ export function InterviewSetup() {
 
             <label className={`${styles.inputField} ${styles.roleField}`}>
               <span>Target role</span>
-              <input required value={targetRole} maxLength={120} onChange={(event) => setTargetRole(event.target.value)} />
-              <small>Sapphire uses this role in the interview blueprint.</small>
+              <input
+                required
+                value={targetRole}
+                maxLength={120}
+                placeholder="e.g. nurse, teacher, product manager"
+                onChange={(event) => setTargetRole(event.target.value)}
+              />
+              <small>Enter the job or career you want to practice for.</small>
             </label>
           </div>
 

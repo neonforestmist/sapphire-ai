@@ -68,7 +68,7 @@ Status: complete for deterministic acceptance; real-provider response verificati
 ### Verified acceptance
 
 - [x] 79 unit/integration tests cover schemas, browser-speech text/error handling, audio conversion, state, board normalization/diff, provider parsing and safety, interview-brief validation, ownership/security, persistence, Live tools/state, and orchestration.
-- [x] Three local Playwright cases cover responsive landing, consent, conversation, browser-voice availability, automatic board-idle analysis, exact Redis focus, grounded probe, coordination revision, report, replay, deletion, and subsequent denial.
+- [x] Four local Playwright cases cover responsive landing, blank role setup, career guidance, consent, role-aware conversation, automatic read-aloud, Voice/Text switching, browser-voice availability, automatic board-idle analysis, exact Redis focus, grounded probe, coordination revision, report, replay, deletion, and subsequent denial.
 - [x] Two deployed Playwright cases repeat the flagship journey through an authenticated Cloud Run proxy with Firestore and Cloud Storage.
 - [x] Deployed deletion leaves zero Firestore sessions and no bucket objects.
 - [x] Production Chrome QA verifies landing, setup, consent, board fit, exact contradiction focus, revision, default report evidence, replay, and mobile overflow.
@@ -89,6 +89,7 @@ Status: the local browser transport and independent text path are implemented an
 - [x] Dispatcher and reducer tests.
 - [x] One multimodal room accepts typed turns and microphone audio without an upfront mode choice.
 - [x] The room presents persisted candidate and interviewer turns as one recognizable conversation, beginning with the interviewer's question.
+- [x] Sapphire opens with a natural role-aware introduction; Voice is selected by default, every spoken turn remains visible as transcript, and an in-session Text segment provides a quiet mode.
 - [x] Microphone starts muted and is requested only after the user selects unmute.
 - [x] When Gemini Live is disabled, supported browsers provide opt-in speech recognition and question read-aloud without requiring Gemini credentials.
 - [x] Browser capture resamples mono audio to 16 kHz PCM16, sends realtime chunks, plays 24 kHz output, clears playback on interruption, and persists finalized input/output captions.

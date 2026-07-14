@@ -9,6 +9,7 @@ test("starts muted and streams a synthetic microphone only after unmute", async 
   test.setTimeout(60_000);
   await page.goto("/interview/new");
   await page.getByLabel("Interview format").selectOption("behavioral");
+  await page.getByLabel("Target role").fill("Customer support manager");
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Start interview", exact: true }).click();
 

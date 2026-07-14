@@ -18,7 +18,6 @@ import type {
 } from "@/lib/interview/schemas";
 import { normalizeExcalidrawScene } from "@/lib/whiteboard/normalize";
 import {
-  RATE_LIMITER_GLOBAL_CLAIM,
   RATE_LIMITER_IDS,
 } from "@/lib/whiteboard/rate-limiter-fixture";
 import { createInitialBoardDiff } from "@/lib/whiteboard/semantic-diff";
@@ -61,6 +60,7 @@ type AnalyzePayload = {
 };
 
 type ActionStatus = "idle" | "sending" | "analyzing" | "finishing";
+type InteractionMode = "voice" | "text";
 
 function boardVersionSignature(elements: readonly unknown[]): string {
   return elements
@@ -215,16 +215,38 @@ const revisedSkeleton = () => [
   },
 ];
 
-function starterReasoning(blueprint: InterviewBlueprint): string {
+function interviewIntroduction(blueprint: InterviewBlueprint): string {
+  const boardGuidance = blueprint.interviewType === "system-design"
+    ? " You can use the board whenever a diagram helps your answer."
+    : "";
+  return `Hey there! I’ll guide your ${blueprint.roleTitle} practice interview at the ${blueprint.seniority.toLowerCase()} level. You can answer by typing or speaking.${boardGuidance} Whenever you’re ready, let’s begin.`;
+}
+
+function fallbackInterviewerReply(
+  blueprint: InterviewBlueprint,
+  candidateTurnIndex: number,
+): string | null {
   switch (blueprint.interviewType) {
     case "behavioral":
-      return "I joined a project that used an unfamiliar testing tool, so I built a small example first, asked for feedback, and documented what I learned for the team.";
+      return [
+        "Thanks—that gives me the situation. What did you personally do, and why did you choose that approach?",
+        "What changed because of your actions, and how did you measure the result?",
+        "Looking back, what would you do differently next time?",
+      ][candidateTurnIndex % 3] ?? null;
     case "case-study":
-      return "I would first map the current support workflow, measure where replies slow down, and check quality before choosing a change.";
+      return [
+        "That’s a useful starting point. Which metric would prove response time improved without hurting answer quality?",
+        "What is the first change you would test, and why would you prioritize it?",
+        "What risk could make that recommendation backfire, and how would you watch for it?",
+      ][candidateTurnIndex % 3] ?? null;
     case "technical-explanation":
-      return "I would define a useful answer, build representative test cases, measure accuracy and safety, then compare those results with user feedback.";
+      return [
+        "Good start. What would your first test set include, and why would those examples be representative?",
+        "How would you decide the assistant is safe and useful enough to launch?",
+        "How would you explain the biggest trade-off to a teammate who is new to the topic?",
+      ][candidateTurnIndex % 3] ?? null;
     case "system-design":
-      return RATE_LIMITER_GLOBAL_CLAIM;
+      return null;
   }
 }
 
@@ -264,6 +286,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
   const [boardReady, setBoardReady] = useState(false);
   const [boardVisible, setBoardVisible] = useState(true);
   const [lastLiveReply, setLastLiveReply] = useState<string | null>(null);
+  const [interactionMode, setInteractionMode] = useState<InteractionMode>("voice");
   const [boardIdleVersion, setBoardIdleVersion] = useState(0);
   const [speechOutputSupported, setSpeechOutputSupported] = useState(false);
   const boardPauseTimerRef = useRef<number | null>(null);
@@ -271,6 +294,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
   const lastAnalyzedBoardSignatureRef = useRef("");
   const automaticAnalysisRef = useRef(false);
   const conversationLogRef = useRef<HTMLDivElement | null>(null);
+  const lastSpokenTextRef = useRef("");
 
   const loadSession = useCallback(async () => {
     try {
@@ -281,7 +305,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
       setReasoning(data.reasoningState);
       const hasTranscript = data.events.some((event) => event.type === "transcript.input.finalized");
       setTranscriptSent(hasTranscript);
-      if (!hasTranscript) setReasoningText(starterReasoning(data.blueprint));
+      if (!hasTranscript) setReasoningText("");
       setBoardVisible(data.blueprint.interviewType === "system-design");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not load the interview.");
@@ -389,9 +413,21 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
     onToolCall: dispatchLiveTool,
   });
 
+  const persistBrowserCandidateTurn = useCallback(async (text: string) => {
+    await persistLiveTranscript("candidate", text);
+    if (payload && !payload.liveEnabled) {
+      const candidateTurnIndex = payload.events.filter(
+        (event) => event.type === "transcript.input.finalized",
+      ).length;
+      const reply = fallbackInterviewerReply(payload.blueprint, candidateTurnIndex);
+      if (reply) await persistLiveTranscript("interviewer", reply);
+    }
+    setReasoningText("");
+  }, [payload, persistLiveTranscript]);
+
   const browserVoice = useBrowserVoice({
     onDraft: setReasoningText,
-    onFinalTranscript: (text) => persistLiveTranscript("candidate", text),
+    onFinalTranscript: persistBrowserCandidateTurn,
   });
 
   const transcriptMessages = useMemo(() => {
@@ -409,6 +445,42 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
     : false;
   const contradiction = reasoning?.contradictions[0] ?? null;
   const probe = reasoning?.recommendedProbe ?? null;
+  const introduction = payload ? interviewIntroduction(payload.blueprint) : "";
+  const openingQuestion = payload
+    ? `Here’s your first question: ${payload.blueprint.problemStatement}`
+    : "";
+  const latestPersistedInterviewerTurn = [...transcriptMessages]
+    .reverse()
+    .find((segment) => segment.speaker === "interviewer")?.text ?? null;
+  const latestInterviewerTurn = probe?.question
+    ?? lastLiveReply
+    ?? latestPersistedInterviewerTurn
+    ?? [introduction, openingQuestion].filter(Boolean).join(" ");
+
+  const speakText = useCallback((text: string) => {
+    if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.96;
+    utterance.pitch = 1;
+    window.speechSynthesis.speak(utterance);
+  }, []);
+
+  useEffect(() => {
+    if (
+      interactionMode !== "voice" ||
+      !speechOutputSupported ||
+      !payload ||
+      payload.liveEnabled ||
+      !latestInterviewerTurn ||
+      latestInterviewerTurn === lastSpokenTextRef.current
+    ) return;
+    const timer = window.setTimeout(() => {
+      lastSpokenTextRef.current = latestInterviewerTurn;
+      speakText(latestInterviewerTurn);
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [interactionMode, latestInterviewerTurn, payload, speakText, speechOutputSupported]);
 
   useEffect(() => {
     const log = conversationLogRef.current;
@@ -512,7 +584,15 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
       );
       setTranscriptSent(true);
       setNotice("Reasoning captured as finalized transcript evidence.");
-      void live.sendText(text);
+      if (payload?.liveEnabled && interactionMode === "voice") {
+        void live.sendText(text);
+      } else if (payload) {
+        const candidateTurnIndex = payload.events.filter(
+          (event) => event.type === "transcript.input.finalized",
+        ).length;
+        const reply = fallbackInterviewerReply(payload.blueprint, candidateTurnIndex);
+        if (reply) await persistLiveTranscript("interviewer", reply);
+      }
       setReasoningText("");
       await loadSession();
     } catch (caught) {
@@ -663,6 +743,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
   ]);
 
   async function toggleVoice() {
+    if (interactionMode !== "voice") return;
     if (payload?.liveEnabled) {
       await (live.isListening ? live.mute() : live.unmute());
       return;
@@ -676,14 +757,22 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
     await browserVoice.start(seed);
   }
 
+  async function selectInteractionMode(nextMode: InteractionMode) {
+    if (nextMode === interactionMode) return;
+    if (nextMode === "text") {
+      if (payload?.liveEnabled && live.isListening) await live.mute();
+      if (browserVoice.isListening) browserVoice.stop();
+      window.speechSynthesis?.cancel();
+    } else {
+      lastSpokenTextRef.current = "";
+    }
+    setInteractionMode(nextMode);
+  }
+
   function playCurrentQuestion() {
-    if (!payload || !speechOutputSupported) return;
-    const text = probe?.question ?? lastLiveReply ?? payload.blueprint.problemStatement;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.96;
-    utterance.pitch = 1;
-    window.speechSynthesis.speak(utterance);
+    if (!latestInterviewerTurn || !speechOutputSupported) return;
+    lastSpokenTextRef.current = latestInterviewerTurn;
+    speakText(latestInterviewerTurn);
   }
 
   async function finishInterview() {
@@ -723,11 +812,13 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
   const voiceListening = payload.liveEnabled ? live.isListening : browserVoice.isListening;
   const voiceAvailable = payload.liveEnabled || browserVoice.supported;
   const voiceError = payload.liveEnabled ? live.error : browserVoice.error;
-  const interviewerMode = payload.liveEnabled
-    ? "Gemini Live voice and text"
-    : browserVoice.supported
-      ? "Browser voice and text"
-      : "Text interview";
+  const interviewerMode = interactionMode === "text"
+    ? "Text conversation"
+    : payload.liveEnabled
+      ? "Gemini Live voice and transcript"
+      : browserVoice.supported
+        ? "Voice and transcript"
+        : "Spoken interviewer with text replies";
 
   return (
     <main className={styles.page}>
@@ -809,7 +900,22 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
               <div className={styles.avatar}>S</div>
               <div><strong>Sapphire interviewer</strong><span>{interviewerMode}</span></div>
             </div>
-            <div className={styles.liveControls}>
+            <div className={styles.modeSwitchWrap}>
+              <div className={styles.modeSwitch} role="group" aria-label="Interview conversation mode">
+                <button
+                  type="button"
+                  aria-pressed={interactionMode === "voice"}
+                  onClick={() => void selectInteractionMode("voice")}
+                >Voice</button>
+                <button
+                  type="button"
+                  aria-pressed={interactionMode === "text"}
+                  onClick={() => void selectInteractionMode("text")}
+                >Text</button>
+              </div>
+              <p>{interactionMode === "voice" ? "Sapphire speaks; voice and typed replies both work." : "A quiet text conversation. Switch back to voice anytime."}</p>
+            </div>
+            {interactionMode === "voice" && <div className={styles.liveControls}>
               <button
                 type="button"
                 className={voiceListening ? styles.micLive : styles.micMuted}
@@ -832,15 +938,19 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
                 onClick={playCurrentQuestion}
                 disabled={!speechOutputSupported}
               >
-                Hear question
+                Replay last turn
               </button>
               <p>{voiceListening ? "Listening now" : "Microphone starts muted"}</p>
-            </div>
+            </div>}
 
             <div ref={conversationLogRef} className={styles.conversationLog} aria-label="Interview conversation" aria-live="polite">
+              <article className={`${styles.chatMessage} ${styles.assistantMessage}`} aria-label="Interviewer introduction">
+                <span>Sapphire</span>
+                <p>{displayText(introduction)}</p>
+              </article>
               <article className={`${styles.chatMessage} ${styles.assistantMessage}`}>
                 <span>Sapphire</span>
-                <p>{displayText(payload.blueprint.problemStatement)}</p>
+                <p>{displayText(openingQuestion)}</p>
               </article>
 
               {transcriptMessages.map((segment) => (
@@ -861,18 +971,13 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
                 </article>
               )}
 
-              {probe?.question ? (
+              {probe?.question && (
                 <article
                   className={`${styles.chatMessage} ${styles.assistantMessage} ${styles.followUpMessage}`}
                   data-testid="interviewer-probe"
                 >
                   <span>{contradiction ? "Sapphire noticed a mismatch" : "Sapphire follow-up"}</span>
                   <p>{displayText(probe.question)}</p>
-                </article>
-              ) : (
-                <article className={`${styles.chatMessage} ${styles.assistantMessage} ${styles.waitingMessage}`}>
-                  <span className={styles.wave} aria-hidden="true"><i /><i /><i /></span>
-                  <p>{boardVisible ? "Talk or type while you draw. I’ll respond after you pause." : "Talk or type when you are ready. You can open the board whenever it helps."}</p>
                 </article>
               )}
             </div>
