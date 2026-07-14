@@ -31,12 +31,13 @@ The official Gemini 3.5 Flash guide recommends `@google/genai` 2.0.0 or later fo
 
 ### Current implementation status
 
-- Implemented: `@google/genai` 2.11.0 reasoning gateway, deterministic mock gateway, strict Interactions parsing/repair, server ephemeral-token creation, seven strict Live tools, application dispatcher, and connection/recovery reducer.
+- Implemented: `@google/genai` 2.11.0 reasoning gateway, deterministic mock gateway, strict Interactions parsing/repair, server ephemeral-token creation, browser Live session adapter, 16 kHz PCM microphone capture, 24 kHz playback, finalized caption persistence, seven strict Live tools, application dispatcher, and connection/recovery reducer.
 - Functional today: typed text fallback and direct board analysis, independent of Live. The deployed Cloud Run service is configured with `GEMINI_MODE=real` and `ENABLE_GEMINI_LIVE=false`.
 - Quota-preserving demo setup: the fixed `demo` / `global-rate-limiter` blueprint is assembled deterministically even inside `RealGeminiGateway`; it does not consume a Gemini request.
 - Authoritative analysis: `analyzeBoard` in real mode always calls Gemini and never silently substitutes deterministic reasoning. A provider failure remains a visible, recoverable analysis error and the board stays usable.
 - Report resilience: only a retryable/transient final-report failure may use a schema-validated deterministic report assembled from already validated evidence. That report includes the explicit limitation: “Gemini final-report generation was temporarily unavailable. This report was assembled from validated session evidence.” Authentication, permission, validation, and other non-retryable errors do not take this path.
-- Not implemented: concrete browser Live connection, microphone/PCM pipeline, audio playback, transcription-event bridge, and networked reconnect/resumption execution.
+- Verified locally: a bounded Free Tier typed turn returned 18 native-audio parts and output transcription; the rendered browser persisted and displayed the finalized caption. An opt-in Chrome check used a synthetic microphone and reached the listening state only after unmute.
+- Not implemented: automatic networked reconnect and resumption execution, deterministic mock audio transport, and long-session real-provider audio verification.
 - Provider state: a server-only credential is available and real requests have reached the Gemini API. The latest observed responses were Free Tier quota (`429`) and upstream high-demand (`500`) errors, so no successful real flagship analysis is claimed here. See `docs/QA_REPORT.md` for the latest smoke evidence.
 
 ### Free Tier authorization and quota boundary
@@ -215,7 +216,7 @@ Ephemeral tokens work only with Live and `v1alpha`. A one-use token may still re
 
 ## Current Live JavaScript shape
 
-The snippets below record the verified official SDK shape and target browser implementation. They are not a claim that the repository currently opens a Live connection or streams audio.
+The snippets below record the verified official SDK shape used by the browser adapter and the bounded real-provider check.
 
 Live SDK configuration uses camelCase, unlike the current Interactions request:
 
@@ -244,10 +245,10 @@ const session = await ai.live.connect({
 });
 ~~~
 
-Send real-time text and microphone data with:
+Send a complete typed turn and real-time microphone data with:
 
 ~~~ts
-session.sendRealtimeInput({ text: fallbackText });
+session.sendClientContent({ turns: fallbackText, turnComplete: true });
 
 session.sendRealtimeInput({
   audio: {
@@ -257,7 +258,7 @@ session.sendRealtimeInput({
 });
 ~~~
 
-For `gemini-3.1-flash-live-preview`, `sendClientContent` is only for seeding initial history when the required history configuration is enabled. After the first model turn, use `sendRealtimeInput({ text })`.
+Typed turns and microphone chunks share the same Live session. `sendClientContent` gives typed turns explicit ordering and completion, while `sendRealtimeInput` keeps audio responsive through server-side voice activity detection.
 
 Input audio is raw little-endian 16-bit PCM, natively 16 kHz. Output audio is 24 kHz. Send input in approximately 20–100 ms chunks for responsive interaction.
 
@@ -318,7 +319,7 @@ The model waits for the response before it may reference the resulting board evi
 - If Live or the microphone fails, retain the independent Gemini 3.5 Flash board-analysis endpoint and working text fallback.
 - Treat denied, revoked, unavailable, and transient microphone states as distinct UI states.
 
-Without compression, official documentation limits audio-only sessions to 15 minutes; an individual connection is around 10 minutes. The current reducer models compression, resumption, and GoAway recovery, but no active browser WebSocket executes those paths yet.
+Without compression, official documentation limits audio-only sessions to 15 minutes; an individual connection is around 10 minutes. The browser handles audio interruption and records resumption/GoAway events, while automatic reconnect execution remains pending.
 
 ## Test policy
 

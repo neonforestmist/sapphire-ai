@@ -15,7 +15,7 @@ It does not claim to read thoughts or private chain of thought. It must not infe
 
 ## Status notice
 
-The deterministic text/board flow, consent, anonymous ownership, evidence storage, report/replay, and deletion are verified locally and through the private Cloud Run deployment. That deployed journey used Firestore and the private snapshot bucket, then verified that session documents and objects were removed. The current build performs no microphone capture. Browser Live audio remains target behavior; consult `docs/QA_REPORT.md` for the exact verification boundary.
+The deterministic text/board flow, consent, anonymous ownership, evidence storage, report/replay, and deletion are verified locally and through the private Cloud Run deployment. That deployed journey used Firestore and the private snapshot bucket, then verified that session documents and objects were removed. The browser captures microphone audio only after unmute when Live is enabled. The bounded microphone check used a synthetic device, so no ambient room audio was transmitted.
 
 ## Consent
 
@@ -55,7 +55,7 @@ Microphone permission is optional. Denial, revocation, or unavailability must le
 - plaintext anonymous ownership capabilities; and
 - unrelated browser, account, resume, payment, or employment data.
 
-If the future Gemini Live connection is enabled, that service necessarily processes streaming audio during an active authorized connection. SapphireAI's application storage is designed not to retain that raw stream.
+When Gemini Live is enabled, that service necessarily processes streaming audio during an active authorized connection. SapphireAI does not retain that raw stream in application storage.
 
 ## Local and mock mode
 
@@ -86,7 +86,7 @@ Board analysis sends the minimum useful context to Gemini:
 - problem statement, stage, rubric, and constraints; and
 - analysis version.
 
-If the Live transport is completed and enabled, the browser will connect with a one-use, short-lived, constrained ephemeral token minted by the backend. The permanent credential remains server-side. The current browser does not open that connection.
+When Live is enabled, the browser connects with a one-use, short-lived, constrained ephemeral token minted by the backend. The permanent credential remains server-side. The microphone remains muted until the user starts it, and pausing sends an audio-stream-end signal without disabling text.
 
 Users of a deployed instance should also review the applicable Google Gemini API and Google Cloud data-processing terms for the approved account/project. This project document is not a substitute for those terms or legal advice.
 
@@ -130,9 +130,7 @@ Deletion failures must be visible and retryable. The application must not report
 
 ## User controls
 
-The current interface provides explicit consent, text fallback, visible mock/real mode, manual board analysis, accessible focused-element reveal, report limitations/confidence, replay, and delete-session action.
-
-Microphone start/stop and permission-state controls remain required before browser Live audio can be described as implemented.
+The current interface provides explicit consent, an independent text path, microphone start/stop, visible mock/real mode, optional whiteboard, manual board analysis, accessible focused-element reveal, report limitations/confidence, replay, and delete-session action.
 
 ## Known limitations
 

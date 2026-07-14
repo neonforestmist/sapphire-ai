@@ -22,6 +22,11 @@ import {
   RATE_LIMITER_IDS,
 } from "@/lib/whiteboard/rate-limiter-fixture";
 import { createInitialBoardDiff } from "@/lib/whiteboard/semantic-diff";
+import { useGeminiLive } from "@/lib/live/use-gemini-live";
+import {
+  createLiveToolDispatcher,
+  LiveToolApplicationError,
+} from "@/lib/live/dispatcher";
 
 import styles from "./interview-room.module.css";
 
@@ -197,8 +202,17 @@ const revisedSkeleton = () => [
   },
 ];
 
-function humanStage(stage: string): string {
-  return stage.toLowerCase().replaceAll("_", " ");
+function starterReasoning(blueprint: InterviewBlueprint): string {
+  switch (blueprint.interviewType) {
+    case "behavioral":
+      return "I joined a project that used an unfamiliar testing tool, so I built a small example first, asked for feedback, and documented what I learned for the team.";
+    case "case-study":
+      return "I would first map the current support workflow, measure where replies slow down, and check quality before choosing a change.";
+    case "technical-explanation":
+      return "I would define a useful answer, build representative test cases, measure accuracy and safety, then compare those results with user feedback.";
+    case "system-design":
+      return RATE_LIMITER_GLOBAL_CLAIM;
+  }
 }
 
 async function readApi<T>(response: Response): Promise<T> {
@@ -227,7 +241,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
   const rawElementsRef = useRef<readonly unknown[]>([]);
   const [payload, setPayload] = useState<SessionPayload | null>(null);
   const [reasoning, setReasoning] = useState<ReasoningState | null>(null);
-  const [reasoningText, setReasoningText] = useState(RATE_LIMITER_GLOBAL_CLAIM);
+  const [reasoningText, setReasoningText] = useState("");
   const [status, setStatus] = useState<ActionStatus>("idle");
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -235,6 +249,8 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
   const [focusedIds, setFocusedIds] = useState<string[]>([]);
   const [scenarioLoaded, setScenarioLoaded] = useState(false);
   const [boardReady, setBoardReady] = useState(false);
+  const [boardVisible, setBoardVisible] = useState(true);
+  const [lastLiveReply, setLastLiveReply] = useState<string | null>(null);
 
   const loadSession = useCallback(async () => {
     try {
@@ -243,9 +259,10 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
       );
       setPayload(data);
       setReasoning(data.reasoningState);
-      setTranscriptSent(
-        data.events.some((event) => event.type === "transcript.input.finalized"),
-      );
+      const hasTranscript = data.events.some((event) => event.type === "transcript.input.finalized");
+      setTranscriptSent(hasTranscript);
+      if (!hasTranscript) setReasoningText(starterReasoning(data.blueprint));
+      setBoardVisible(data.blueprint.interviewType === "system-design");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not load the interview.");
     }
@@ -255,6 +272,90 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
     const timer = window.setTimeout(() => void loadSession(), 0);
     return () => window.clearTimeout(timer);
   }, [loadSession]);
+
+  const persistLiveTranscript = useCallback(async (
+    speaker: "candidate" | "interviewer",
+    text: string,
+  ) => {
+    const normalized = text.trim();
+    if (!normalized) return;
+    const now = Date.now();
+    const segment: TranscriptSegment = {
+      id: `transcript-${crypto.randomUUID().replaceAll("-", "")}`,
+      sessionId,
+      speaker,
+      source: speaker === "candidate" ? "live_input" : "live_output",
+      text: normalized,
+      startedAt: now,
+      endedAt: now,
+      finalized: true,
+    };
+    await readApi(
+      await fetch(`/api/interviews/${sessionId}/events`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          type: speaker === "candidate"
+            ? "transcript.input.finalized"
+            : "transcript.output.finalized",
+          segment,
+        }),
+      }),
+    );
+    if (speaker === "candidate") {
+      setTranscriptSent(true);
+      setReasoningText(normalized);
+    }
+    await loadSession();
+  }, [loadSession, sessionId]);
+
+  async function dispatchLiveTool(call: unknown) {
+    const unavailable = () => {
+      throw new LiveToolApplicationError({
+        publicMessage: "That interview action is not available in this browser session.",
+      });
+    };
+    const dispatcher = createLiveToolDispatcher({
+      getKnownBoardElementIds: () => rawElementsRef.current.flatMap((element) => {
+        if (!element || typeof element !== "object") return [];
+        const candidate = element as { id?: unknown; isDeleted?: boolean; deleted?: boolean };
+        return typeof candidate.id === "string" && !candidate.isDeleted && !candidate.deleted
+          ? [candidate.id]
+          : [];
+      }),
+      handlers: {
+        request_board_analysis: async () => {
+          await analyzeBoard();
+          return { analyzed: true };
+        },
+        focus_board_elements: async (args) => {
+          setFocusedIds([...args.elementIds]);
+          setNotice(args.message);
+          return { focusedElementIds: args.elementIds };
+        },
+        request_candidate_reflection: async (args) => {
+          setNotice(`Reflection: ${args.topic}`);
+          return { requested: true };
+        },
+        record_interview_signal: unavailable,
+        advance_interview_stage: unavailable,
+        inject_constraint: unavailable,
+        finish_interview: unavailable,
+      },
+    });
+    return dispatcher.dispatch({ call });
+  }
+
+  const live = useGeminiLive({
+    sessionId,
+    enabled: payload?.liveEnabled ?? false,
+    onInputTranscript: (text) => persistLiveTranscript("candidate", text),
+    onOutputTranscript: async (text) => {
+      setLastLiveReply(text);
+      await persistLiveTranscript("interviewer", text);
+    },
+    onToolCall: dispatchLiveTool,
+  });
 
   const contradiction = reasoning?.contradictions[0] ?? null;
   const probe = reasoning?.recommendedProbe ?? null;
@@ -335,6 +436,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
       );
       setTranscriptSent(true);
       setNotice("Reasoning captured as finalized transcript evidence.");
+      void live.sendText(text);
       await loadSession();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not capture reasoning.");
@@ -494,26 +596,28 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
           <span className="status-pill">
             <span className="status-dot" />{payload.providerMode === "mock" ? "Deterministic mock" : "Gemini connected"}
           </span>
-          <span className={styles.stage}>{humanStage(payload.session.stage)}</span>
+          <button className="button-quiet" onClick={() => setBoardVisible((visible) => !visible)}>
+            {boardVisible ? "Hide board" : "Show board"}
+          </button>
           <button className="button-secondary" onClick={finishInterview} disabled={status !== "idle"}>
             {status === "finishing" ? "Building report…" : "Finish & review"}
           </button>
         </div>
       </header>
 
-      <div className={styles.workspace}>
-        <section className={styles.boardColumn} aria-label="Interview whiteboard">
+      <div className={`${styles.workspace} ${boardVisible ? "" : styles.panelOnly}`}>
+        {boardVisible && <section className={styles.boardColumn} aria-label="Interview whiteboard">
           <div className={styles.promptBar}>
             <div>
               <h1>{displayText(payload.blueprint.problemStatement)}</h1>
             </div>
             <div className={styles.boardActions}>
-              <button className="button-secondary" onClick={() => void placeScenario(false)} disabled={!boardReady || status !== "idle"}>
+              {payload.blueprint.interviewType === "system-design" && <button className="button-secondary" onClick={() => void placeScenario(false)} disabled={!boardReady || status !== "idle"}>
                 {scenarioLoaded ? "Reset example board" : "Load example board"}
-              </button>
-              <button className={styles.revisionButton} onClick={() => void placeScenario(true)} disabled={!boardReady || !contradiction || status !== "idle"}>
+              </button>}
+              {payload.blueprint.interviewType === "system-design" && <button className={styles.revisionButton} onClick={() => void placeScenario(true)} disabled={!boardReady || !contradiction || status !== "idle"}>
                 + Add coordination path
-              </button>
+              </button>}
             </div>
           </div>
           <div className={styles.canvasShell} data-testid="whiteboard-shell">
@@ -555,14 +659,39 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
               </button>
             )}
           </div>
-        </section>
+        </section>}
 
         <aside className={styles.sidePanel} aria-label="Interview evidence panel">
           <section className={styles.interviewerCard}>
             <div className={styles.interviewerHead}>
               <div className={styles.avatar}>S</div>
-              <div><strong>Sapphire interviewer</strong><span>{payload.liveEnabled ? "Gemini Live voice and captions" : "Text mode, Live voice not connected"}</span></div>
+              <div><strong>Sapphire interviewer</strong><span>{payload.liveEnabled ? "Text and audio ready" : "Text ready, Live audio unavailable"}</span></div>
             </div>
+            <div className={styles.liveControls}>
+              <button
+                type="button"
+                className={live.isListening ? styles.micLive : styles.micMuted}
+                onClick={() => void (live.isListening ? live.mute() : live.unmute())}
+                disabled={!payload.liveEnabled || live.status === "connecting"}
+                aria-pressed={live.isListening}
+              >
+                <span aria-hidden="true">{live.isListening ? "■" : "●"}</span>
+                {!payload.liveEnabled
+                  ? "Voice unavailable"
+                  : live.status === "connecting"
+                    ? "Connecting voice"
+                    : live.isListening
+                      ? "Mute microphone"
+                      : "Unmute microphone"}
+              </button>
+              <p>{live.isListening ? "Listening now" : "Microphone starts muted"}</p>
+            </div>
+            {lastLiveReply && (
+              <div className={styles.liveReply} aria-live="polite">
+                <strong>Sapphire</strong>
+                <p>{displayText(lastLiveReply)}</p>
+              </div>
+            )}
             {probe?.question ? (
               <div className={styles.probe} data-testid="interviewer-probe">
                 <span>{contradiction ? "Contradiction probe" : "Follow-up"}</span>
@@ -571,7 +700,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
             ) : (
               <div className={styles.waitingProbe}>
                 <span className={styles.wave}><i /><i /><i /></span>
-                <p>I’m watching for a meaningful mismatch between what you say and what you draw.</p>
+                <p>{boardVisible ? "I’m watching for a meaningful mismatch between what you say and what you draw." : "Type an answer or unmute when you are ready. The board remains available if you need it."}</p>
               </div>
             )}
           </section>
@@ -598,7 +727,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
                 <p>The report will preserve the original mismatch, interviewer probe, and this board revision.</p>
               </div>
             ) : (
-              <p className={styles.emptyEvidence}>No contradiction has been asserted. Sapphire waits until the transcript and board provide enough evidence.</p>
+              <p className={styles.emptyEvidence}>No interview evidence has been recorded yet. Sapphire waits for a finalized answer before drawing conclusions.</p>
             )}
           </section>
 
@@ -614,19 +743,19 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
               rows={4}
               maxLength={8_000}
             />
-            <div className={styles.responseActions}>
+            <div className={`${styles.responseActions} ${boardVisible ? "" : styles.textOnlyActions}`}>
               <button className="button-secondary" onClick={sendReasoning} disabled={!reasoningText.trim() || status !== "idle"}>
                 {status === "sending" ? "Capturing…" : "Send reasoning"}
               </button>
-              <button className="button-primary" onClick={analyzeBoard} disabled={status !== "idle" || !scenarioLoaded}>
+              {boardVisible && <button className="button-primary" onClick={analyzeBoard} disabled={status !== "idle" || !scenarioLoaded}>
                 {status === "analyzing" ? "Analyzing evidence…" : "Analyze board"}
-              </button>
+              </button>}
             </div>
           </section>
 
-          {(notice || error) && (
-            <p className={error ? styles.error : styles.notice} role={error ? "alert" : "status"}>
-              {displayText(error ?? notice ?? "")}
+          {(notice || error || live.error) && (
+            <p className={(error || live.error) ? styles.error : styles.notice} role={(error || live.error) ? "alert" : "status"}>
+              {displayText(error ?? live.error ?? notice ?? "")}
             </p>
           )}
           <p className={styles.privacy}>Board images are private session artifacts. Raw microphone audio is never stored.</p>

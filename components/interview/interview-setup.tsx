@@ -7,12 +7,31 @@ import { Brand } from "@/components/brand";
 import { displayText } from "@/components/display-text";
 import styles from "./interview-setup.module.css";
 
-type InputMode = "text" | "voice";
+type InterviewType = "system-design" | "technical-explanation" | "case-study" | "behavioral";
 type ExperienceLevel = "intern" | "early-career" | "mid-level" | "senior";
+
+const PRACTICE_EXAMPLES: Record<InterviewType, { title: string; description: string }> = {
+  "system-design": {
+    title: "Design one shared usage limit for an AI study helper.",
+    description: "Talk through the architecture and use the board when a diagram helps.",
+  },
+  "technical-explanation": {
+    title: "Explain how you would evaluate an AI assistant before launch.",
+    description: "A conversational technical interview with the board available when useful.",
+  },
+  "case-study": {
+    title: "Help a support team reduce response time without lowering quality.",
+    description: "Structure the problem aloud, test assumptions, and sketch only if it adds clarity.",
+  },
+  behavioral: {
+    title: "Describe a time you learned an unfamiliar tool quickly.",
+    description: "A voice-first practice round that works without opening the whiteboard.",
+  },
+};
 
 export function InterviewSetup() {
   const router = useRouter();
-  const [inputMode, setInputMode] = useState<InputMode>("text");
+  const [interviewType, setInterviewType] = useState<InterviewType>("system-design");
   const [targetRole, setTargetRole] = useState("AI engineering internship");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("intern");
   const [consent, setConsent] = useState(false);
@@ -29,11 +48,11 @@ export function InterviewSetup() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           scenarioId: "global-rate-limiter",
-          interviewType: "system-design",
+          interviewType,
           targetRole,
           experienceLevel,
-          inputMode,
-          consent: { transcript: true, microphone: inputMode === "voice" }
+          inputMode: "voice",
+          consent: { transcript: true, microphone: true }
         })
       });
       const body = (await response.json()) as { data?: { sessionId: string }; error?: { message: string } };
@@ -51,10 +70,10 @@ export function InterviewSetup() {
       <div className={`shell ${styles.layout}`}>
         <section className={styles.intro}>
           <h1>Set the interview.<br />Then think out loud.</h1>
-          <p>Choose what you are practicing, speak or type your reasoning, and build the answer on a live whiteboard.</p>
+          <p>Type or speak in the same session. Open the whiteboard when drawing helps your answer.</p>
           <ol>
             <li><div><strong>Choose the interview</strong><p>Set the format, target role, and experience level.</p></div></li>
-            <li><div><strong>Explain while you draw</strong><p>Use text today, with Gemini Live voice planned as the conversational path.</p></div></li>
+            <li><div><strong>Talk, type, or draw</strong><p>The microphone starts muted. Text and the optional board stay available throughout.</p></div></li>
             <li><div><strong>Get a grounded follow-up</strong><p>Sapphire connects what you said to the exact elements on your board.</p></div></li>
           </ol>
         </section>
@@ -62,16 +81,19 @@ export function InterviewSetup() {
         <section className={`glass-panel ${styles.form}`} aria-labelledby="setup-heading">
           <div className={styles.formHeading}>
             <h2 id="setup-heading">Set up a practice round</h2>
-            <p>Choose the interview before the whiteboard opens</p>
+            <p>Choose the interview before the first question</p>
           </div>
 
           <div className={styles.briefFields}>
             <label className={styles.inputField}>
               <span>Interview format</span>
-              <select defaultValue="system-design" disabled aria-describedby="format-help">
+              <select value={interviewType} onChange={(event) => setInterviewType(event.target.value as InterviewType)} aria-describedby="format-help">
                 <option value="system-design">System design</option>
+                <option value="technical-explanation">Technical explanation</option>
+                <option value="case-study">Case study</option>
+                <option value="behavioral">Behavioral</option>
               </select>
-              <small id="format-help">The verified demo currently supports system design.</small>
+              <small id="format-help">You can still show or hide the whiteboard during the interview.</small>
             </label>
             <label className={styles.inputField}>
               <span>Experience level</span>
@@ -89,35 +111,19 @@ export function InterviewSetup() {
             </label>
           </div>
 
-          <fieldset className={styles.fieldset}>
-            <legend>How do you want to think out loud?</legend>
-            <label className={`${styles.modeCard} ${inputMode === "text" ? styles.selected : ""}`}>
-              <input type="radio" name="input-mode" value="text" checked={inputMode === "text"} onChange={() => setInputMode("text")} />
-              <span className={styles.modeIcon} aria-hidden="true">⌨</span>
-              <span><strong>Type your answer</strong><small>Quick, reliable, and permission-free</small></span>
-              <span className={styles.radioMark} aria-hidden="true" />
-            </label>
-            <label className={`${styles.modeCard} ${styles.disabledMode}`}>
-              <input type="radio" name="input-mode" value="voice" checked={false} disabled onChange={() => setInputMode("voice")} />
-              <span className={styles.modeIcon} aria-hidden="true">◉</span>
-              <span><strong>Gemini Live voice</strong><small>Browser audio transport is not connected yet</small></span>
-              <span className={styles.radioMark} aria-hidden="true" />
-            </label>
-          </fieldset>
-
           <div className={styles.scenario}>
-            <h3>Give an AI study helper one shared usage limit.</h3>
-            <p>Students may use the helper from the US or EU. Each student gets 10 answers per minute total.</p>
+            <h3>{PRACTICE_EXAMPLES[interviewType].title}</h3>
+            <p>{PRACTICE_EXAMPLES[interviewType].description}</p>
           </div>
 
           <label className={styles.consent}>
             <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
-            <span>I consent to storing finalized transcript text and selected board snapshots for this session. Raw microphone audio is not stored.</span>
+            <span>I consent to finalized transcript storage, selected board snapshots, and microphone processing only after I unmute. Raw audio is not stored.</span>
           </label>
 
           {error && <p className={styles.error} role="alert">{displayText(error)}</p>}
           <button type="button" className={`button-primary ${styles.submit}`} disabled={!consent || targetRole.trim().length < 2 || isCreating} onClick={beginInterview}>
-            {isCreating ? "Opening whiteboard…" : "Start text practice"}<span aria-hidden="true">→</span>
+            {isCreating ? "Opening interview…" : "Start interview"}<span aria-hidden="true">→</span>
           </button>
           <p className={styles.privacyNote}>You can delete the full session and its artifacts from the report.</p>
         </section>

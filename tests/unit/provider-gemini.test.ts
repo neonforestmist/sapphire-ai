@@ -106,6 +106,21 @@ function realGateway(create: ReturnType<typeof vi.fn>, maximumTransientRetries: 
 }
 
 describe("deterministic Gemini mock", () => {
+  it("creates a role-specific conversational blueprint without forcing a whiteboard", async () => {
+    const blueprint = await new MockGeminiGateway(() => 100).createInterviewBlueprint({
+      scenarioId: "global-rate-limiter",
+      mode: "demo",
+      interviewType: "behavioral",
+      targetRole: "Customer success internship",
+      experienceLevel: "intern",
+    });
+
+    expect(blueprint.interviewType).toBe("behavioral");
+    expect(blueprint.problemStatement).toMatch(/unfamiliar tool/i);
+    expect(blueprint.constraints).toEqual([]);
+    expect(blueprint.withheldClarifications).toEqual([]);
+  });
+
   it("detects the flagship contradiction and returns exact known store IDs", async () => {
     const input = analysisInput([
       element("us-store", "US Redis"),

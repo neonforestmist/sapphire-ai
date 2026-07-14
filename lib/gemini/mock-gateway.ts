@@ -28,6 +28,67 @@ const EXPERIENCE_LABELS = {
   senior: "Senior",
 } as const;
 
+const INTERVIEW_VARIANTS = {
+  "system-design": {
+    problemStatement: "Give an AI study helper one shared usage limit.",
+    initialKnownRequirements: [
+      "Help students from US and EU regions.",
+      "Allow 10 AI answers per student each minute.",
+    ],
+    hiddenRubric: [
+      "Clarify scope and traffic.",
+      "Define rate-limit semantics.",
+      "Address global versus regional consistency.",
+      "Discuss latency and availability trade-offs.",
+      "Choose and justify an algorithm.",
+      "Place state and define synchronization.",
+      "Cover failure modes, hot keys, abuse, observability, and rollout.",
+    ],
+  },
+  "technical-explanation": {
+    problemStatement: "Explain how you would evaluate an AI assistant before an internship launch.",
+    initialKnownRequirements: [
+      "The assistant answers beginner programming questions.",
+      "The team needs evidence that answers are useful and safe.",
+    ],
+    hiddenRubric: [
+      "Define what a good answer means.",
+      "Separate offline evaluation from user feedback.",
+      "Discuss representative test cases and failure cases.",
+      "Explain trade-offs in clear language.",
+      "Propose a practical launch decision.",
+    ],
+  },
+  "case-study": {
+    problemStatement: "Help a support team reduce response time without lowering answer quality.",
+    initialKnownRequirements: [
+      "The team handles product questions from small-business customers.",
+      "Leadership wants a measurable improvement within one quarter.",
+    ],
+    hiddenRubric: [
+      "Clarify the customer and current workflow.",
+      "Choose useful success metrics.",
+      "Prioritize a small number of testable changes.",
+      "Identify risks and counter-metrics.",
+      "Communicate a practical recommendation.",
+    ],
+  },
+  behavioral: {
+    problemStatement: "Tell me about a time you learned an unfamiliar tool quickly.",
+    initialKnownRequirements: [
+      "Use one specific example.",
+      "Explain your actions, result, and what you learned.",
+    ],
+    hiddenRubric: [
+      "Give enough context to understand the situation.",
+      "Describe personal actions rather than only team actions.",
+      "Use concrete evidence for the result.",
+      "Reflect on what changed afterward.",
+      "Communicate clearly and concisely.",
+    ],
+  },
+} as const;
+
 function emptyEvidence(snapshotId: string | null): EvidenceRef {
   return { transcriptSegmentIds: [], boardElementIds: [], snapshotId };
 }
@@ -73,39 +134,30 @@ export class MockGeminiGateway implements GeminiGateway {
   constructor(private readonly now: () => number = () => Date.now()) {}
 
   async createInterviewBlueprint(input: BlueprintInput): Promise<InterviewBlueprint> {
+    const variant = INTERVIEW_VARIANTS[input.interviewType];
     return interviewBlueprintSchema.parse({
       id: `blueprint-${input.scenarioId}`.slice(0, 128),
       scenarioId: input.scenarioId,
+      interviewType: input.interviewType,
       roleTitle: input.targetRole,
       seniority: EXPERIENCE_LABELS[input.experienceLevel],
-      problemStatement: "Give an AI study helper one shared usage limit.",
-      initialKnownRequirements: [
-        "Help students from US and EU regions.",
-        "Allow 10 AI answers per student each minute.",
-      ],
-      withheldClarifications: [
+      problemStatement: variant.problemStatement,
+      initialKnownRequirements: variant.initialKnownRequirements,
+      withheldClarifications: input.interviewType === "system-design" ? [
         {
           id: "clarification-consistency",
           questionPattern: "Is the usage limit shared across both regions?",
           answer: "Yes. A student gets 10 answers total, not 10 in each region.",
         },
-      ],
-      hiddenRubric: [
-        "Clarify scope and traffic.",
-        "Define rate-limit semantics.",
-        "Address global versus regional consistency.",
-        "Discuss latency and availability trade-offs.",
-        "Choose and justify an algorithm.",
-        "Place state and define synchronization.",
-        "Cover failure modes, hot keys, abuse, observability, and rollout.",
-      ],
-      constraints: [
+      ] : [],
+      hiddenRubric: variant.hiddenRubric,
+      constraints: input.interviewType === "system-design" ? [
         {
           id: "region-partition",
           text: "The US-to-EU network link can be unavailable for several minutes.",
           targetStage: "CONSTRAINT_INJECTION",
         },
-      ],
+      ] : [],
       competencyDefinitions: [
         ["problem_framing", "Clarifies users, scope, and success conditions."],
         ["requirement_discovery", "Surfaces functional and non-functional constraints."],

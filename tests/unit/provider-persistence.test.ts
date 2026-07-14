@@ -43,6 +43,7 @@ describe("in-memory session persistence", () => {
     const blueprint = interviewBlueprintSchema.parse({
       id: "blueprint-1",
       scenarioId: session.scenarioId,
+      interviewType: "system-design",
       roleTitle: "Senior Software Engineer",
       seniority: "Senior",
       problemStatement: "Design a rate limiter.",

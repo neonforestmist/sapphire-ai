@@ -5,8 +5,15 @@ import styles from "./page.module.css";
 const evidenceMoments = [
   { label: "Set the interview", copy: "Choose the format, target role, and experience level before the first question." },
   { label: "Talk or type", copy: "Use Gemini Live when enabled, or keep going with the independent text path." },
-  { label: "Draw the answer", copy: "Build the system on a whiteboard while your explanation becomes transcript evidence." },
+  { label: "Use the board when useful", copy: "Map architecture or a workflow, or keep the board hidden for a conversational round." },
   { label: "Get one grounded probe", copy: "Sapphire cites the exact words and board elements behind its next question." }
+];
+
+const useCases = [
+  { title: "System design", example: "Map services, state, and trade-offs.", board: "Board useful" },
+  { title: "Technical explanation", example: "Explain an evaluation or debugging plan.", board: "Board optional" },
+  { title: "Case study", example: "Structure a messy problem and recommendation.", board: "Board optional" },
+  { title: "Behavioral", example: "Practice a specific story through conversation.", board: "Board hidden by default" },
 ];
 
 export default function LandingPage() {
@@ -23,7 +30,7 @@ export default function LandingPage() {
         <div className={styles.heroCopy}>
           <h1>The interviewer that<br /><span>sees how you think.</span></h1>
           <p className={styles.lede}>
-            Choose an interview, talk or type, and draw as you go. Sapphire ties each follow-up to your words and board.
+            Type or speak in the same session. Open the whiteboard only when it helps. Sapphire ties each follow-up to observable evidence.
           </p>
           <div className={styles.heroActions}>
             <Link className="button-primary" href="/interview/new">
@@ -40,7 +47,7 @@ export default function LandingPage() {
         >
           <div className={styles.mockTopbar}>
             <div><span className={styles.miniMark} />System design</div>
-            <span>Voice or text with whiteboard</span>
+            <span>Text and audio, board optional</span>
           </div>
           <div className={styles.mockRoom}>
             <div className={styles.boardPreview}>
@@ -71,10 +78,26 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className={`shell ${styles.useCases}`}>
+        <div className={styles.sectionIntro}>
+          <h2>Practice the interview in front of you.</h2>
+          <p>Use the same focused room for a diagram-heavy technical round or a conversation without a board.</p>
+        </div>
+        <div className={styles.useCaseGrid}>
+          {useCases.map((useCase) => (
+            <article className={styles.useCase} key={useCase.title}>
+              <h3>{useCase.title}</h3>
+              <p>{useCase.example}</p>
+              <span>{useCase.board}</span>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className={`shell ${styles.signature}`} id="how-it-works">
         <div className={styles.sectionIntro}>
           <h2>One interview. Three connected inputs.</h2>
-          <p>The brief sets the direction. Your voice or text carries the reasoning. The whiteboard supplies visible architecture evidence.</p>
+          <p>The brief sets the direction. Voice and text share the conversation. The whiteboard adds visual evidence when you use it.</p>
         </div>
         <div className={styles.timeline}>
           {evidenceMoments.map((moment) => (

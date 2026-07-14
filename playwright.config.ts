@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const externalBaseUrl = process.env.PLAYWRIGHT_BASE_URL;
 const externalOrigin = process.env.PLAYWRIGHT_ORIGIN;
+const useFakeMicrophone = process.env.PLAYWRIGHT_FAKE_MIC === "true";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -17,7 +18,13 @@ export default defineConfig({
     navigationTimeout: 30_000,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    video: "retain-on-failure"
+    video: "retain-on-failure",
+    ...(useFakeMicrophone
+      ? {
+          permissions: ["microphone"],
+          launchOptions: { args: ["--use-fake-device-for-media-stream"] }
+        }
+      : {})
   },
   projects: [
     {

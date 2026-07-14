@@ -11,6 +11,8 @@ export type LiveClientConnection = Readonly<{
 export type LiveClientEvent =
   | Readonly<{ type: "input_transcript_final"; text: string }>
   | Readonly<{ type: "output_transcript_final"; text: string }>
+  | Readonly<{ type: "audio_output"; dataBase64: string; sampleRate: 24_000 }>
+  | Readonly<{ type: "tool_call"; call: unknown }>
   | Readonly<{ type: "interrupted" }>
   | Readonly<{ type: "go_away"; reconnectByMs: number }>
   | Readonly<{ type: "resumption_handle"; handle: string }>
@@ -26,6 +28,7 @@ export interface LiveClientAdapter {
   connect(connection: LiveClientConnection): Promise<void>;
   disconnect(): Promise<void>;
   sendPcm16Audio(chunk: Int16Array): void;
+  endAudioStream(): void;
   sendText(text: string): Promise<void>;
   sendToolResponse(response: LiveToolResponse): Promise<void>;
   subscribe(listener: (event: LiveClientEvent) => void): () => void;

@@ -44,7 +44,7 @@ The full local gate passed on 2026-07-13.
 | `pnpm install` | Pass | Lockfile present; dependency installation and postinstall completed |
 | `pnpm lint` | Pass | ESLint exited 0 on the final source tree |
 | `pnpm typecheck` | Pass | Strict `tsc --noEmit` exited 0 |
-| `pnpm test` | Pass | 72 Vitest unit/integration tests passed |
+| `pnpm test` | Pass | 77 Vitest unit/integration tests passed |
 | `pnpm test:e2e` | Pass | 2 local Playwright flagship tests passed |
 | `pnpm build` | Pass | Next.js production build compiled, typechecked, generated routes, and exited 0 |
 | `pnpm audit --prod --audit-level high` | Pass | No known production vulnerabilities after pinned transitive security upgrades |
@@ -54,7 +54,8 @@ The full local gate passed on 2026-07-13.
 | Deployed deterministic E2E | Pass | 2 Playwright tests passed through the authenticated Cloud Run proxy against Firestore and Cloud Storage |
 | Post-E2E cleanup | Pass | Firestore session count was 0 and the snapshot bucket contained no objects |
 | Real Gemini smoke | Inconclusive | Bounded runs reached `gemini-3.5-flash`; one returned transient HTTP 500 responses and a later run returned HTTP 429 Free Tier rate-limit responses |
-| Real Gemini Live smoke | Not run | Browser Live transport is unfinished and `ENABLE_GEMINI_LIVE=false` |
+| Real Gemini Live typed turn | Pass | One bounded Free Tier turn returned 18 native-audio parts plus transcription; the browser displayed and persisted the finalized reply |
+| Real Gemini Live microphone | Pass | Opt-in Chrome run used a synthetic device, verified muted default, then reached listening and streamed only after unmute |
 | `git diff --check` | Pass | Exited 0 after the final documentation update |
 
 The final Playwright run reused the optimized local production server and passed both journeys. A prior Turbopack-only development-bundle failure did not reproduce in the production build or the deployed service.
@@ -84,14 +85,14 @@ The final Playwright run reused the optimized local production server and passed
 
 The optimized production UI was checked in Chrome at desktop and mobile sizes. The verified journey includes:
 
-- landing hierarchy, format, role, experience-level setup, consent gating, and text-mode selection;
+- landing hierarchy, four interview formats, role, experience-level setup, consent gating, and one mixed text/audio session;
 - a custom `Machine learning engineer` target and `Senior` level reaching the generated interview room;
 - all initial rate-limiter nodes and arrows fitting in the Excalidraw camera;
 - exact `US Redis + EU Redis` contradiction focus without hiding the surrounding topology;
 - evidence-grounded probe, coordinator revision, and revision-recognized state;
 - report defaulting to the contradiction evidence;
 - replay preserving the complete multiline `Global quota coordinator` label;
-- visible keyboard focus and honest disabled voice state; and
+- visible keyboard focus, muted microphone state, optional-board panel layout, and honest disabled Live state when the server flag is false; and
 - a 390 by 844 viewport with no horizontal overflow and a 44 px primary action.
 
 No unexplained browser console error was observed in the inspected local journey. Because the Cloud Run service is intentionally private, deployed browser automation used an authenticated local proxy instead of a public URL.
@@ -118,7 +119,7 @@ Artifact Registry cleanup deletes old images while retaining a small recent set.
 - Unknown board IDs are rejected before focus or persistence.
 - Model text is rendered as text, not trusted HTML.
 - Permanent Gemini and Google Cloud credentials are never exposed client-side.
-- Raw microphone audio is not captured or stored by the current build.
+- Raw microphone audio is streamed only after unmute when Live is enabled and is not stored by the application.
 - The runtime service account has scoped Firestore, bucket-object, and secret-access roles.
 - The service is private; unauthenticated invocation was verified to fail with HTTP 403.
 - No secret value appears in this report or the repository.
@@ -136,6 +137,6 @@ Credential routing and request authentication were sufficient to reach the real 
 ## Remaining verification
 
 - Repeat the opt-in real Gemini smoke after provider capacity recovers; require a schema-valid response before claiming real reasoning success.
-- Implement and verify the browser Gemini Live transport before enabling `ENABLE_GEMINI_LIVE`.
+- Run a bounded real-provider browser audio smoke before enabling `ENABLE_GEMINI_LIVE` in deployment.
 - Exercise arbitrary freehand pan, zoom, resize, and deletion combinations beyond the deterministic signature board.
 - If public access is ever desired, obtain separate explicit approval, review abuse controls, and then repeat the deployed clean-browser and unauthenticated-access tests.

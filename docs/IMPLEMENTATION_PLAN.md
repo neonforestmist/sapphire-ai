@@ -4,7 +4,7 @@ Last updated: 2026-07-13
 
 ## Objective and completion rule
 
-SapphireAI is a whiteboard-native system-design interview practice application. Its controlling acceptance path is:
+SapphireAI is a multimodal interview practice application with a whiteboard-native system-design path. Its controlling acceptance path is:
 
 1. the candidate states that quotas must remain globally consistent;
 2. the board shows separate US and EU API-to-Redis paths without synchronization;
@@ -16,7 +16,7 @@ SapphireAI is a whiteboard-native system-design interview practice application. 
 
 That path is complete and verified with the deterministic gateway both locally and through the private Cloud Run service using Firestore and Cloud Storage. A successful real `gemini-3.5-flash` analysis remains an external verification item: credentialed bounded runs reached the model but returned transient HTTP 500 high-demand and HTTP 429 Free Tier rate-limit responses.
 
-The deployed service is intentionally private. Public access and Gemini Live are not completion requirements for the current private, text-first demonstration and remain disabled unless separately approved and implemented.
+The deployed service is intentionally private. Public access and Gemini Live remain disabled in Cloud Run unless separately approved. The local browser transport passed a bounded Free Tier typed-to-audio turn and a synthetic-microphone capture check.
 
 ## Dependency order
 
@@ -39,7 +39,7 @@ Local deterministic flagship E2E
 Private Cloud Run + Firestore/Storage flagship E2E
         |
         +----> Successful real Gemini reasoning smoke (provider capacity pending)
-        +----> Browser Gemini Live transport (optional, intentionally disabled)
+        +----> Browser Gemini Live real-provider smoke (local implementation complete)
 ~~~
 
 ## P0 - flagship whiteboard contradiction flow
@@ -51,7 +51,7 @@ Status: complete for deterministic acceptance; real-provider response verificati
 - [x] Current stable Next.js App Router, strict TypeScript, pnpm, Tailwind, Zod, Excalidraw, Vitest, Testing Library, and Playwright.
 - [x] Explicit mock and real configuration with server-only credentials and actionable real-mode validation.
 - [x] Strict Zod schemas for board scenes, diffs, transcripts, events, stages, reasoning, evidence, reports, APIs, and errors.
-- [x] Validated interview setup for format, target role, and experience level, with one deterministic system-design problem pack.
+- [x] Validated interview setup for system design, technical explanation, case study, and behavioral practice, with one fully verified system-design problem pack.
 - [x] Excalidraw as the primary workspace with stable element IDs, normalized geometry, bindings and deletion state, semantic diffs, bounded snapshots, and analysis versions.
 - [x] Append-only evidence linking transcripts, snapshots, reasoning, focus, probes, revisions, completion, and reports.
 - [x] Real and deterministic Gemini gateways behind one contract.
@@ -61,13 +61,13 @@ Status: complete for deterministic acceptance; real-provider response verificati
 - [x] Honest deterministic final-report fallback only for transient provider failure; real board analysis never silently falls back.
 - [x] Required interview, event, analysis, finish, report, snapshot, deletion, Live-token, and health routes.
 - [x] Memory and Firestore/Storage repositories plus anonymous ownership capability, origin/body/rate/concurrency protections, consent, and complete deletion.
-- [x] Landing, setup, interview, exact focus and keyboard reveal, report, replay, loading/error/not-found states, and deterministic text fallback.
+- [x] Landing, setup, optional board, mixed text/audio controls, exact focus and keyboard reveal, report, replay, loading/error/not-found states, and deterministic text fallback.
 - [x] Report defaults to the contradiction evidence and replay preserves multiline board labels and supported shapes.
 - [x] Polished dark sapphire interface with responsive collapse, reduced motion, visible focus, honest feature states, and no unnecessary eyebrow copy.
 
 ### Verified acceptance
 
-- [x] 72 unit/integration tests cover schemas, state, board normalization/diff, provider parsing and safety, interview-brief validation, ownership/security, persistence, Live tools/state, and orchestration.
+- [x] 77 unit/integration tests cover schemas, audio conversion, state, board normalization/diff, provider parsing and safety, interview-brief validation, ownership/security, persistence, Live tools/state, and orchestration.
 - [x] Two local Playwright cases cover consent, exact Redis focus, grounded probe, coordination revision, report, replay, deletion, and subsequent denial.
 - [x] Two deployed Playwright cases repeat the flagship journey through an authenticated Cloud Run proxy with Firestore and Cloud Storage.
 - [x] Deployed deletion leaves zero Firestore sessions and no bucket objects.
@@ -78,7 +78,7 @@ Status: complete for deterministic acceptance; real-provider response verificati
 
 ## P1 - interviewer transport and resilient fallback
 
-Status: the production text path and Live safety foundation are complete; browser Live audio is intentionally deferred and disabled.
+Status: the local browser transport and independent text path are implemented and passed bounded real-provider checks. Deployed enablement remains pending.
 
 ### Complete
 
@@ -87,18 +87,22 @@ Status: the production text path and Live safety foundation are complete; browse
 - [x] Exactly seven strict Live tool schemas and an application-owned dispatcher with matching call IDs, bounded sanitized responses, and unknown board-ID rejection.
 - [x] Pure connection-state reducer covering interruption, queued playback clearing, GoAway, resumption handles, compression, bounded recovery, and failure.
 - [x] Dispatcher and reducer tests.
-- [x] Setup presents voice as unavailable instead of implying that unfinished transport works.
+- [x] One multimodal room accepts typed turns and microphone audio without an upfront mode choice.
+- [x] Microphone starts muted and is requested only after the user selects unmute.
+- [x] Browser capture resamples mono audio to 16 kHz PCM16, sends realtime chunks, plays 24 kHz output, clears playback on interruption, and persists finalized input/output captions.
+- [x] Typed turns remain usable while Live connects or fails and can receive spoken Live output when enabled.
+- [x] Whiteboard can be shown or hidden without leaving the interview.
+- [x] Live board-analysis, exact-focus, and reflection tool calls pass through the validated application dispatcher. Unsupported state mutations return bounded application-owned failures.
+- [x] Bounded real Live typed-to-audio check returned native audio and a finalized output caption without enabling billing.
+- [x] Opt-in Chrome check used a synthetic microphone, verified the muted default, then entered listening and streamed only after unmute.
 - [x] Deployed runtime explicitly uses `ENABLE_GEMINI_LIVE=false`.
 
-### Deferred Live work
+### Remaining Live work
 
-- [ ] Concrete browser Live WebSocket/session connection.
-- [ ] Microphone permission UI, PCM capture and streaming, 24 kHz playback, and input/output transcription bridge.
 - [ ] Networked interruption, GoAway, resumption, and reconnect execution.
 - [ ] Mock Live transport integration and rendered microphone/reconnect QA.
-- [ ] Opt-in real Live smoke with explicit Preview disclosure.
 
-The repository does not claim working voice. The complete interview path is text plus direct board analysis.
+The repository claims a bounded local real-provider Live verification, not deployed Live availability or long-session resilience. The complete credential-free acceptance path remains text plus direct board analysis.
 
 ## P2 - Google Cloud and private deployment
 
@@ -128,7 +132,7 @@ Status: complete for the approved private, scale-to-zero deployment; public expo
 - [ ] Repeat the real Gemini smoke after provider capacity recovers and record one schema-valid analysis response.
 - [ ] Replace process-local request limiting with a distributed limiter before increasing Cloud Run beyond one instance.
 - [ ] Run broader freehand-board and long-session persistence tests.
-- [ ] Implement Gemini Live before considering it for deployment; keep `ENABLE_GEMINI_LIVE=false` until then.
+- [ ] Verify Gemini Live against the real Preview service before considering it for deployment; keep `ENABLE_GEMINI_LIVE=false` until then.
 - [ ] If public access is desired later, require separate explicit approval, abuse-control review, and a new public clean-browser test.
 
 ## External limits and approval gates
@@ -137,7 +141,7 @@ Status: complete for the approved private, scale-to-zero deployment; public expo
 | --- | --- | --- |
 | Real Gemini reasoning | Authentication reached `gemini-3.5-flash`; bounded runs returned transient HTTP 500 high-demand and HTTP 429 Free Tier rate-limit responses | Retry after provider capacity/quota recovers; do not claim success until a structured response validates |
 | Gemini Free Tier | Separate Gemini project is unbilled; an earlier request observed its HTTP 429 Free Tier limit | Keep request volume bounded; do not add a top-up merely for the demo |
-| Real Gemini Live | Foundation exists, browser transport does not; deployment flag is false | Implement and test transport before enabling it |
+| Real Gemini Live | Typed input produced native audio and a finalized caption; synthetic microphone capture reached listening after unmute; deployment flag is false | Keep deployment disabled until reconnect and longer-session behavior are verified |
 | Google Cloud runtime | Private revision healthy and deterministic deployed E2E passed | Keep Free Trial safeguards and one-instance cap unless the owner explicitly changes the operating model |
 | Public exposure | Intentionally not enabled; unauthenticated invocation returns HTTP 403 | Obtain separate explicit approval before granting `allUsers` invocation |
 | Billing activation | Not required for the current approved state | Do not click **Activate** or enable a paid Gemini tier as part of routine verification |
@@ -146,4 +150,4 @@ Public exposure, broader IAM, scaling above one instance, billing activation, de
 
 ## Explicit non-goals
 
-Do not add resumes, job matching, accounts, payments, employer workflows, facial or emotion analysis, culture-fit inference, generic chat, or an in-product autonomous browser agent. Additional interview formats must remain whiteboard-native and require their own validated blueprint, deterministic fixture, contradiction tests, and report evidence path.
+Do not add resumes, job matching, accounts, payments, employer workflows, facial or emotion analysis, culture-fit inference, generic chat, or an in-product autonomous browser agent. Additional interview formats remain bounded interview-practice modes. Only system design currently has a verified board-contradiction fixture and evidence path.

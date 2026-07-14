@@ -187,7 +187,12 @@ export const reasoningStateSchema = z
 
 export type ReasoningState = z.infer<typeof reasoningStateSchema>;
 
-export const interviewTypeSchema = z.enum(["system-design"]);
+export const interviewTypeSchema = z.enum([
+  "system-design",
+  "technical-explanation",
+  "case-study",
+  "behavioral",
+]);
 export type InterviewType = z.infer<typeof interviewTypeSchema>;
 
 export const experienceLevelSchema = z.enum([
@@ -222,6 +227,7 @@ export const interviewBlueprintSchema = z
   .object({
     id: domainIdSchema,
     scenarioId: domainIdSchema,
+    interviewType: interviewTypeSchema,
     roleTitle: shortTextSchema,
     seniority: shortTextSchema,
     problemStatement: nonEmptyTextSchema,

@@ -137,11 +137,10 @@ export async function createScopedLiveEphemeralToken(options: {
               triggerTokens: "24000",
               slidingWindow: { targetTokens: "12000" },
             },
-            sessionResumption: { transparent: true },
+            sessionResumption: {},
             enableAffectiveDialog: false,
           },
         },
-        lockAdditionalFields: [],
       },
     });
     if (!token.name) {

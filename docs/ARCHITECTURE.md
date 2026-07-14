@@ -4,7 +4,7 @@ Last updated: 2026-07-13
 
 ## Design principles
 
-- The whiteboard is the primary interaction surface.
+- Text and microphone audio share one interview session. The whiteboard is optional except where visual reasoning is the point of the exercise.
 - Gemini interprets observable multimodal evidence and recommends a probe.
 - Deterministic application code owns identity, permissions, validation, state transitions, persistence, rendering, and deletion.
 - The Live interviewer is conversational, not the authoritative scoring engine.
@@ -14,7 +14,7 @@ Last updated: 2026-07-13
 
 ## System architecture
 
-The diagram is the target P0-P2 architecture. The verified local runtime currently uses text input, Excalidraw, direct analysis APIs, the deterministic gateway, and memory repositories. Live token/tool/state foundations and cloud adapters exist, but browser Live audio and authenticated cloud services are not active.
+The verified local runtime uses text input, optional Excalidraw, direct analysis APIs, the deterministic gateway, memory repositories, and an implemented browser Live transport. A bounded local typed-to-audio turn and synthetic-microphone capture check passed. The private Cloud Run revision keeps Live disabled.
 
 ~~~mermaid
 flowchart LR
@@ -55,7 +55,7 @@ flowchart LR
 
 | Boundary | Responsibilities |
 | --- | --- |
-| Browser | Current: board interaction, local continuity, focus overlays, text fallback. Target: microphone capture, Live audio playback, and captions |
+| Browser | Board interaction, local continuity, focus overlays, independent text turns, muted-by-default microphone capture, Live audio playback, captions, and interruption clearing |
 | Server routes | Ownership checks, Zod validation, size/rate/concurrency limits, sanitized errors, ephemeral-token minting |
 | Interview orchestrator | Legal stage transitions, event ordering, stale-version rejection, confidence policy, persistence, report assembly |
 | Gemini reasoning gateway | Provider request/response translation, timeout/retry/repair policy, model-output parsing |
@@ -64,7 +64,7 @@ flowchart LR
 
 ## Live tool-call flow
 
-This sequence is the P1 target. Strict tools, dispatch, and recovery state are implemented; the browser connection/audio steps are not.
+This sequence is implemented locally. Real-provider verification and automatic network reconnect remain pending.
 
 ~~~mermaid
 sequenceDiagram
