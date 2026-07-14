@@ -10,6 +10,25 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test("keeps the landing page focused and overflow-free on small screens", async ({ page }) => {
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/");
+
+    await expect(
+      page.getByRole("heading", { name: /the interviewer that can see how you think/i }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: /set up your interview/i })).toHaveCount(1);
+    await expect(page.getByRole("link", { name: /see the product loop/i })).toHaveCount(0);
+
+    const viewport = await page.evaluate(() => ({
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+    }));
+    expect(viewport.documentWidth).toBeLessThanOrEqual(viewport.viewportWidth);
+  }
+});
+
 test("grounds a rate-limiter contradiction in exact board evidence and records the revision", async ({
   page,
 }) => {

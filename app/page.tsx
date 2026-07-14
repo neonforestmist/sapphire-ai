@@ -33,7 +33,6 @@ export default function LandingPage() {
             <Link className="button-primary" href="/interview/new">
               Set up your interview <span aria-hidden="true">→</span>
             </Link>
-            <a className="button-quiet" href="#how-it-works">See the product loop</a>
           </div>
         </div>
 
