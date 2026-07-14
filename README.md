@@ -2,17 +2,46 @@
 
 **The interviewer that sees how you think.**
 
-SapphireAI is a whiteboard-native interview-practice application. It compares a candidate’s observable spoken or typed reasoning with an evolving system-design board, focuses the exact board elements that support a mismatch, and asks one evidence-grounded follow-up.
+SapphireAI is a whiteboard-native interview simulator built around one continuous loop:
 
-![SapphireAI landing page with an AI engineering internship practice prompt](docs/images/sapphire-ai-home.png)
+- choose the interview format, target role, and experience level;
+- speak with the interviewer through Gemini Live, or use the independent text path;
+- draw and revise the solution on the whiteboard while you explain it;
+- receive follow-ups grounded in both the transcript and exact board elements;
+- replay the evidence behind the final report.
 
-## A beginner-friendly demo
+![SapphireAI landing page showing a voice or text interview connected to whiteboard evidence](docs/images/sapphire-ai-home.png)
 
-Imagine you are practicing for an AI engineering internship. The interviewer asks you to give an AI study helper one shared usage limit: every student may receive 10 answers per minute total, whether they use the US or EU service.
+## How the interview is meant to feel
+
+Before the session begins, the candidate tells SapphireAI what they are practicing. SapphireAI uses that brief to prepare the role, level, problem, rubric, constraints, and interview stages.
+
+During the interview, Gemini Live is the intended conversational layer. It listens to the candidate, responds with low-latency audio, and calls application-owned tools when it needs a board analysis, exact element focus, stage change, constraint, reflection, or finish action. The text path remains available if voice or microphone access is unavailable.
+
+The whiteboard and conversation are one experience. SapphireAI does not merely transcribe an answer or inspect a final screenshot. It compares finalized speech or text with the evolving board, preserves stable element IDs, and asks the next question from observable evidence.
+
+![SapphireAI interview setup with format, experience level, target role, text, and Gemini Live choices](docs/images/sapphire-ai-setup.png)
+
+Official Gemini documentation describes Live as a real-time bidirectional API over WebSockets with audio, video, and text input plus native audio output. Direct browser connections should use short-lived constrained ephemeral tokens: [Live API overview](https://ai.google.dev/gemini-api/docs/live-api), [capabilities](https://ai.google.dev/gemini-api/docs/live-api/capabilities), and [ephemeral tokens](https://ai.google.dev/gemini-api/docs/live-api/ephemeral-tokens).
+
+## What is verified today
+
+| Capability | Product direction | Repository status |
+| --- | --- | --- |
+| Interview setup | Choose the interview before the first question | Format, target role, and experience level are validated and sent to the blueprint boundary. One system-design format is currently verified. |
+| Voice conversation | Gemini 3.1 Flash Live Preview listens and responds while the candidate draws | Token minting, strict tools, dispatch, and recovery state exist. Browser microphone streaming, playback, captions, and reconnect are not connected yet. |
+| Text fallback | Continue the same interview without voice | Implemented and verified end to end. |
+| Whiteboard understanding | Read the current board, changes, and stable element IDs | Implemented with Excalidraw scene extraction, board diffing, exact focus, and unknown-ID rejection. |
+| Structured reasoning | Compare transcript claims with the evolving board | Deterministic mock mode is fully verified. The real Gemini 3.5 Flash path is wired, but the final smoke did not produce a validated response because of provider capacity and Free Tier limits. |
+| Report and replay | Show the claim, contradiction, probe, revision, and exact evidence | Implemented and verified locally and through the private Cloud Run deployment. |
+
+## The included demo
+
+The checked-in deterministic example uses an AI engineering internship as the selected target role. The interviewer asks the candidate to give an AI study helper one shared usage limit: every student may receive 10 answers per minute total, whether they use the US or EU service.
 
 You explain the rule, then draw one counter in each region. Sapphire notices that the counters do not exchange updates, highlights those exact two boxes, and asks what stops a student from using the full limit in both regions. You connect both counters to one coordinator, and the report preserves the claim, mismatch, question, and revision.
 
-This internship prompt is one approachable example of the whiteboard interaction, not a job-matching or multi-role platform.
+This internship prompt demonstrates the product loop. It is not the entire product definition, and SapphireAI is not a job-matching platform.
 
 <table>
   <tr>
@@ -29,8 +58,6 @@ This internship prompt is one approachable example of the whiteboard interaction
 
 Under the friendly wording, the flagship acceptance test is still a distributed rate limiter. Sapphire must preserve the shared-limit claim, identify the missing coordination path, focus the exact stable element IDs, ask what prevents double consumption, recognize the coordination revision, and replay that evidence in the final report.
 
-> **Current status:** the complete deterministic flagship flow is implemented and verified locally and through the private Cloud Run deployment. The deployed journey exercised Firestore and Cloud Storage, including deletion. Real Gemini authorization reaches `gemini-3.5-flash`, but the final smoke received retryable provider-capacity errors rather than a validated analysis. Browser Live audio is not implemented, and there is intentionally no public deployment.
-
 ## Product boundaries
 
 SapphireAI is a learning and interview-practice product. It evaluates only observable artifacts: finalized speech/text, whiteboard shapes and connections, stated assumptions, revisions, and responses to constraints.
@@ -41,16 +68,23 @@ It does not infer private chain of thought, emotion, personality, accent quality
 
 ~~~mermaid
 flowchart LR
-    Candidate["Candidate speech, text, and board"]
-    Live["Target Live interviewer<br/>3.1 Flash Live Preview"]
+    Brief["Interview format, role, and level"]
+    Blueprint["Validated interview blueprint"]
+    Voice["Candidate voice"]
+    Text["Candidate text"]
+    Board["Evolving whiteboard"]
+    Live["Gemini Live interviewer<br/>target conversational layer"]
     App["Next.js browser + server"]
     Orchestrator["Application-owned orchestrator"]
-    Reasoning["Gemini 3.5 Flash<br/>Interactions API"]
+    Reasoning["Gemini 3.5 Flash<br/>structured board reasoning"]
     Stores["Memory or Firestore<br/>Private snapshot storage"]
 
-    Candidate --> App
-    Candidate --> Live
-    Live <-->|"ephemeral token + tools"| App
+    Brief --> Blueprint
+    Blueprint --> App
+    Voice --> Live
+    Text --> App
+    Board --> App
+    Live <-->|"ephemeral token, captions, and tools"| App
     App --> Orchestrator
     Orchestrator --> Reasoning
     Orchestrator --> Stores
@@ -58,7 +92,7 @@ flowchart LR
     Orchestrator -->|"focus, probe, report, replay"| App
 ~~~
 
-Gemini interprets multimodal evidence. Deterministic application code owns permissions, stable IDs, schema validation, confidence policy, state transitions, persistence, rendering, and deletion. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the complete flows.
+Gemini interprets observable multimodal evidence. Deterministic application code owns permissions, stable IDs, schema validation, confidence policy, state transitions, persistence, rendering, and deletion. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the complete flows.
 
 The current browser runtime uses typed reasoning plus direct board analysis. The server token route, strict Live tools, dispatcher, and recovery reducer exist as a P1 foundation, but a concrete browser Live WebSocket/audio transport is not wired.
 
@@ -155,7 +189,7 @@ Current local evidence:
 
 - `pnpm lint`: passed
 - `pnpm typecheck`: passed
-- `pnpm test`: 71 tests passed
+- `pnpm test`: 72 tests passed
 - `pnpm test:e2e`: 2 Playwright journeys passed
 - `pnpm build`: passed
 - `pnpm audit --prod --audit-level high`: passed with no known production vulnerabilities
@@ -213,4 +247,4 @@ See [docs/PRIVACY.md](docs/PRIVACY.md) for data handling, retention limitations,
 - Firestore and Cloud Storage were exercised through the private deployed flagship journey; automatic time-based session retention is not yet implemented.
 - The container image and Cloud Run revision were built and verified with Cloud Build because a local container engine is unavailable.
 - The Cloud Run service is deliberately private. Public invocation has not been approved or enabled, so the canonical service URL is not a public demo link.
-- The MVP intentionally contains one deep, beginner-friendly AI internship practice scenario. Multiple roles are outside the current product scope.
+- One system-design format and one deterministic problem pack are verified. Setup now carries the selected target role and experience level into the blueprint boundary; additional interview formats and problem packs are not implemented yet.

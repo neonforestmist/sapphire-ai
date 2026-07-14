@@ -45,6 +45,7 @@ type SessionPayload = {
   blueprint: InterviewBlueprint;
   reasoningState: ReasoningState | null;
   providerMode: "mock" | "real";
+  liveEnabled: boolean;
 };
 
 type AnalyzePayload = {
@@ -487,6 +488,9 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
       <header className={styles.header}>
         <Brand />
         <div className={styles.headerMeta}>
+          <span className={styles.roleTitle}>
+            {displayText(payload.blueprint.roleTitle)}, {displayText(payload.blueprint.seniority)}
+          </span>
           <span className="status-pill">
             <span className="status-dot" />{payload.providerMode === "mock" ? "Deterministic mock" : "Gemini connected"}
           </span>
@@ -557,7 +561,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
           <section className={styles.interviewerCard}>
             <div className={styles.interviewerHead}>
               <div className={styles.avatar}>S</div>
-              <div><strong>Sapphire interviewer</strong><span>Evidence-grounded text fallback</span></div>
+              <div><strong>Sapphire interviewer</strong><span>{payload.liveEnabled ? "Gemini Live voice and captions" : "Text mode, Live voice not connected"}</span></div>
             </div>
             {probe?.question ? (
               <div className={styles.probe} data-testid="interviewer-probe">

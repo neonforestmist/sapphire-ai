@@ -3,6 +3,8 @@ import { z } from "zod";
 import {
   boardImageInputSchema,
   domainIdSchema,
+  experienceLevelSchema,
+  interviewTypeSchema,
   transcriptSegmentSchema,
 } from "@/lib/interview/schemas";
 import {
@@ -14,6 +16,9 @@ export const createInterviewRequestSchema = z
   .object({
     scenarioId: z.literal("global-rate-limiter"),
     mode: z.enum(["demo", "normal"]).default("demo"),
+    interviewType: interviewTypeSchema,
+    targetRole: z.string().trim().min(2).max(120),
+    experienceLevel: experienceLevelSchema,
     inputMode: z.enum(["text", "voice"]),
     consent: z
       .object({

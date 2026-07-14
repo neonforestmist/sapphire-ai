@@ -21,6 +21,13 @@ const GLOBAL_CLAIM = /global(?:ly)?\s+(?:consistent|shared)|single\s+(?:global\s
 const STORE_LABEL = /redis|quota\s*store|rate.?limit\s*store|counter/i;
 const COORDINATION_LABEL = /synchron|coordinat|consensus|shared\s*state|global\s*store/i;
 
+const EXPERIENCE_LABELS = {
+  intern: "Intern",
+  "early-career": "Early career",
+  "mid-level": "Mid-level",
+  senior: "Senior",
+} as const;
+
 function emptyEvidence(snapshotId: string | null): EvidenceRef {
   return { transcriptSegmentIds: [], boardElementIds: [], snapshotId };
 }
@@ -69,8 +76,8 @@ export class MockGeminiGateway implements GeminiGateway {
     return interviewBlueprintSchema.parse({
       id: `blueprint-${input.scenarioId}`.slice(0, 128),
       scenarioId: input.scenarioId,
-      roleTitle: "AI Engineering Intern - Systems Basics",
-      seniority: "Intern",
+      roleTitle: input.targetRole,
+      seniority: EXPERIENCE_LABELS[input.experienceLevel],
       problemStatement: "Give an AI study helper one shared usage limit.",
       initialKnownRequirements: [
         "Help students from US and EU regions.",

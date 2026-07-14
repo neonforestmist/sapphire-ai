@@ -150,9 +150,13 @@ describe("real interaction boundary", () => {
     const blueprint = await gateway.createInterviewBlueprint({
       scenarioId: "global-rate-limiter",
       mode: "demo",
+      interviewType: "system-design",
+      targetRole: "AI engineering internship",
+      experienceLevel: "intern",
     });
 
     expect(blueprint.problemStatement).toBe("Give an AI study helper one shared usage limit.");
+    expect(blueprint.roleTitle).toBe("AI engineering internship");
     expect(blueprint.hiddenRubric).toContain("Address global versus regional consistency.");
     expect(create).not.toHaveBeenCalled();
     expect(logger.info).toHaveBeenCalledWith(
@@ -167,6 +171,9 @@ describe("real interaction boundary", () => {
     const blueprint = await new MockGeminiGateway(() => 1_000).createInterviewBlueprint({
       scenarioId: "global-rate-limiter",
       mode: "demo",
+      interviewType: "system-design",
+      targetRole: "AI engineer",
+      experienceLevel: "intern",
     });
     const session = interviewSessionSchema.parse({
       id: "session-1",

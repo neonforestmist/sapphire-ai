@@ -17,13 +17,17 @@ test("grounds a rate-limiter contradiction in exact board evidence and records t
 
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /the interviewer that sees how you think/i })).toBeVisible();
-  await page.getByRole("link", { name: /try the practice/i }).first().click();
+  await page.getByRole("link", { name: /set up your interview/i }).click();
 
+  await expect(page.getByLabel("Interview format")).toHaveValue("system-design");
+  await expect(page.getByLabel("Experience level")).toHaveValue("intern");
+  await expect(page.getByLabel("Target role")).toHaveValue("AI engineering internship");
   await page.getByRole("checkbox").check();
-  await page.getByRole("button", { name: /start practice/i }).click();
+  await page.getByRole("button", { name: /start text practice/i }).click();
   await expect(page).toHaveURL(/\/interview\/session-[A-Za-z0-9_-]+$/);
   const sessionId = page.url().split("/").at(-1)!;
 
+  await expect(page.getByText(/AI engineering internship, Intern/i)).toBeVisible();
   await expect(page.getByText("Give an AI study helper one shared usage limit.")).toBeVisible();
   await page.getByRole("button", { name: /load example board/i }).click();
   await page.getByRole("button", { name: /send reasoning/i }).click();
@@ -70,7 +74,7 @@ test("grounds a rate-limiter contradiction in exact board evidence and records t
 
 test("requires explicit transcript consent before creating an anonymous session", async ({ page }) => {
   await page.goto("/interview/new");
-  const enterButton = page.getByRole("button", { name: /start practice/i });
+  const enterButton = page.getByRole("button", { name: /start text practice/i });
   await expect(enterButton).toBeDisabled();
   await page.getByRole("checkbox").check();
   await expect(enterButton).toBeEnabled();

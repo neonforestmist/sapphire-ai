@@ -3,10 +3,10 @@ import { Brand } from "@/components/brand";
 import styles from "./page.module.css";
 
 const evidenceMoments = [
-  { label: "Say the rule", copy: "“Each student gets one shared usage limit.”" },
-  { label: "Spot the mismatch", copy: "The US and EU counters do not share updates." },
-  { label: "Answer one question", copy: "What stops a student from using the limit in both regions?" },
-  { label: "Improve the diagram", copy: "Connect both counters to one coordinator." }
+  { label: "Set the interview", copy: "Choose the format, target role, and experience level before the first question." },
+  { label: "Talk or type", copy: "Use Gemini Live when enabled, or keep going with the independent text path." },
+  { label: "Draw the answer", copy: "Build the system on a whiteboard while your explanation becomes transcript evidence." },
+  { label: "Get one grounded probe", copy: "Sapphire cites the exact words and board elements behind its next question." }
 ];
 
 export default function LandingPage() {
@@ -15,7 +15,7 @@ export default function LandingPage() {
       <nav className={`shell top-nav ${styles.nav}`} aria-label="Primary navigation">
         <Brand />
         <div className={styles.navActions}>
-          <Link className="button-secondary" href="/interview/new">Try the practice</Link>
+          <Link className="button-secondary" href="/interview/new">Set up an interview</Link>
         </div>
       </nav>
 
@@ -23,27 +23,24 @@ export default function LandingPage() {
         <div className={styles.heroCopy}>
           <h1>The interviewer that<br /><span>sees how you think.</span></h1>
           <p className={styles.lede}>
-            Try an AI intern prompt. Explain your idea, sketch four boxes, and get one follow-up tied to your diagram.
+            Choose an interview, talk or type, and draw as you go. Sapphire ties each follow-up to your words and board.
           </p>
           <div className={styles.heroActions}>
             <Link className="button-primary" href="/interview/new">
-              Try the intern interview <span aria-hidden="true">→</span>
+              Set up your interview <span aria-hidden="true">→</span>
             </Link>
-            <a className="button-quiet" href="#how-it-works">See how it works</a>
-          </div>
-          <div className={styles.trustRow} aria-label="Product capabilities">
-            <span>No account</span><span>No advanced vocabulary</span><span>Evidence-linked report</span>
+            <a className="button-quiet" href="#how-it-works">See the product loop</a>
           </div>
         </div>
 
         <div
           className={styles.heroVisual}
           role="img"
-          aria-label="Preview of Sapphire highlighting two disconnected regional counters for an AI study helper"
+          aria-label="Preview of Sapphire connecting an interview brief, candidate explanation, and live whiteboard evidence"
         >
           <div className={styles.mockTopbar}>
-            <div><span className={styles.miniMark} />AI Engineering Intern</div>
-            <span>Practice board</span>
+            <div><span className={styles.miniMark} />System design</div>
+            <span>Voice or text with whiteboard</span>
           </div>
           <div className={styles.mockRoom}>
             <div className={styles.boardPreview}>
@@ -59,12 +56,16 @@ export default function LandingPage() {
               </div>
             </div>
             <aside className={styles.mockSidebar}>
-              <h2>Give an AI study helper one shared usage limit.</h2>
+              <h2>AI engineering internship</h2>
               <div className={styles.caption}>
-                <span>Your explanation</span>
+                <span>Current prompt</span>
+                <p>Give an AI study helper one shared usage limit.</p>
+              </div>
+              <div className={styles.caption}>
+                <span>Candidate explanation</span>
                 <p>Each student gets one shared limit across the US and EU.</p>
               </div>
-              <div className={styles.analysisState}><span />Board evidence ready</div>
+              <div className={styles.analysisState}><span />Transcript and board ready</div>
             </aside>
           </div>
         </div>
@@ -72,8 +73,8 @@ export default function LandingPage() {
 
       <section className={`shell ${styles.signature}`} id="how-it-works">
         <div className={styles.sectionIntro}>
-          <h2>A small diagram with a clear lesson.</h2>
-          <p>Sapphire connects your rule to your drawing, highlights the gap, and remembers how you fixed it.</p>
+          <h2>One interview. Three connected inputs.</h2>
+          <p>The brief sets the direction. Your voice or text carries the reasoning. The whiteboard supplies visible architecture evidence.</p>
         </div>
         <div className={styles.timeline}>
           {evidenceMoments.map((moment) => (
@@ -87,9 +88,9 @@ export default function LandingPage() {
 
       <section className={`shell ${styles.closing}`}>
         <div>
-          <h2>See how one small change makes the idea stronger.</h2>
+          <h2>Choose the interview before the first question.</h2>
         </div>
-        <Link className="button-primary" href="/interview/new">Try the practice</Link>
+        <Link className="button-primary" href="/interview/new">Set up an interview</Link>
       </section>
     </main>
   );

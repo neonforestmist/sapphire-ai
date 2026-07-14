@@ -288,6 +288,9 @@ export class SapphireInterviewService {
         this.runtime.gemini.createInterviewBlueprint({
           scenarioId: request.scenarioId,
           mode: request.mode,
+          interviewType: request.interviewType,
+          targetRole: request.targetRole,
+          experienceLevel: request.experienceLevel,
         }),
       this.runtime.environment.geminiRequestTimeoutMs,
       "BLUEPRINT_TIMEOUT",

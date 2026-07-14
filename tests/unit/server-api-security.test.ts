@@ -25,6 +25,9 @@ describe("server API request and ownership boundaries", () => {
     expect(
       createInterviewRequestSchema.safeParse({
         scenarioId: "global-rate-limiter",
+        interviewType: "system-design",
+        targetRole: "AI engineer",
+        experienceLevel: "intern",
         inputMode: "voice",
         consent: { transcript: true, microphone: false },
       }).success,
@@ -32,10 +35,27 @@ describe("server API request and ownership boundaries", () => {
     expect(
       createInterviewRequestSchema.parse({
         scenarioId: "global-rate-limiter",
+        interviewType: "system-design",
+        targetRole: "AI engineer",
+        experienceLevel: "intern",
         inputMode: "text",
         consent: { transcript: true, microphone: false },
       }).mode,
     ).toBe("demo");
+  });
+
+  it("validates the candidate-selected interview brief", () => {
+    const parsed = createInterviewRequestSchema.parse({
+      scenarioId: "global-rate-limiter",
+      interviewType: "system-design",
+      targetRole: "Machine learning engineer",
+      experienceLevel: "early-career",
+      inputMode: "text",
+      consent: { transcript: true, microphone: false },
+    });
+
+    expect(parsed.targetRole).toBe("Machine learning engineer");
+    expect(parsed.experienceLevel).toBe("early-career");
   });
 
   it("strictly validates analysis input while allowing the server to derive a diff", () => {

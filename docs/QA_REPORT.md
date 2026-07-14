@@ -44,7 +44,7 @@ The full local gate passed on 2026-07-13.
 | `pnpm install` | Pass | Lockfile present; dependency installation and postinstall completed |
 | `pnpm lint` | Pass | ESLint exited 0 on the final source tree |
 | `pnpm typecheck` | Pass | Strict `tsc --noEmit` exited 0 |
-| `pnpm test` | Pass | 71 Vitest unit/integration tests passed |
+| `pnpm test` | Pass | 72 Vitest unit/integration tests passed |
 | `pnpm test:e2e` | Pass | 2 local Playwright flagship tests passed |
 | `pnpm build` | Pass | Next.js production build compiled, typechecked, generated routes, and exited 0 |
 | `pnpm audit --prod --audit-level high` | Pass | No known production vulnerabilities after pinned transitive security upgrades |
@@ -57,13 +57,14 @@ The full local gate passed on 2026-07-13.
 | Real Gemini Live smoke | Not run | Browser Live transport is unfinished and `ENABLE_GEMINI_LIVE=false` |
 | `git diff --check` | Pass | Exited 0 after the final documentation update |
 
-Playwright uses Next's supported Webpack development mode for its disposable local server. A prior Turbopack-only development-bundle failure did not reproduce in the production build or the deployed service.
+The final Playwright run reused the optimized local production server and passed both journeys. A prior Turbopack-only development-bundle failure did not reproduce in the production build or the deployed service.
 
 ## Flagship acceptance evidence
 
 | Step | Local deterministic | Deployed deterministic | Observed evidence |
 | --- | --- | --- | --- |
 | Landing and setup | Pass | Pass | Focused dark sapphire interface with no unnecessary eyebrow copy |
+| Interview brief | Pass | Not rerun | Format, target role, and experience level cross the validated blueprint boundary; a custom machine-learning role and senior level appeared in the room header |
 | Explicit consent | Pass | Pass | Enter action remains disabled until consent; anonymous session starts afterward |
 | Rate-limiter brief | Pass | Pass | One globally distributed API rate-limiter prompt |
 | Initial board | Pass | Pass | US API to US Redis and EU API to EU Redis with stable IDs |
@@ -83,7 +84,8 @@ Playwright uses Next's supported Webpack development mode for its disposable loc
 
 The optimized production UI was checked in Chrome at desktop and mobile sizes. The verified journey includes:
 
-- landing hierarchy, setup, consent gating, and text-mode selection;
+- landing hierarchy, format, role, experience-level setup, consent gating, and text-mode selection;
+- a custom `Machine learning engineer` target and `Senior` level reaching the generated interview room;
 - all initial rate-limiter nodes and arrows fitting in the Excalidraw camera;
 - exact `US Redis + EU Redis` contradiction focus without hiding the surrounding topology;
 - evidence-grounded probe, coordinator revision, and revision-recognized state;

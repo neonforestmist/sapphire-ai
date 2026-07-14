@@ -51,7 +51,7 @@ Status: complete for deterministic acceptance; real-provider response verificati
 - [x] Current stable Next.js App Router, strict TypeScript, pnpm, Tailwind, Zod, Excalidraw, Vitest, Testing Library, and Playwright.
 - [x] Explicit mock and real configuration with server-only credentials and actionable real-mode validation.
 - [x] Strict Zod schemas for board scenes, diffs, transcripts, events, stages, reasoning, evidence, reports, APIs, and errors.
-- [x] Deterministic stage transitions and one focused Senior Software Engineer system-design role pack.
+- [x] Validated interview setup for format, target role, and experience level, with one deterministic system-design problem pack.
 - [x] Excalidraw as the primary workspace with stable element IDs, normalized geometry, bindings and deletion state, semantic diffs, bounded snapshots, and analysis versions.
 - [x] Append-only evidence linking transcripts, snapshots, reasoning, focus, probes, revisions, completion, and reports.
 - [x] Real and deterministic Gemini gateways behind one contract.
@@ -67,7 +67,7 @@ Status: complete for deterministic acceptance; real-provider response verificati
 
 ### Verified acceptance
 
-- [x] 71 unit/integration tests cover schemas, state, board normalization/diff, provider parsing and safety, ownership/security, persistence, Live tools/state, and orchestration.
+- [x] 72 unit/integration tests cover schemas, state, board normalization/diff, provider parsing and safety, interview-brief validation, ownership/security, persistence, Live tools/state, and orchestration.
 - [x] Two local Playwright cases cover consent, exact Redis focus, grounded probe, coordination revision, report, replay, deletion, and subsequent denial.
 - [x] Two deployed Playwright cases repeat the flagship journey through an authenticated Cloud Run proxy with Firestore and Cloud Storage.
 - [x] Deployed deletion leaves zero Firestore sessions and no bucket objects.
@@ -146,4 +146,4 @@ Public exposure, broader IAM, scaling above one instance, billing activation, de
 
 ## Explicit non-goals
 
-Do not add resumes, job matching, multiple roles, accounts, payments, employer workflows, facial or emotion analysis, culture-fit inference, generic chat, or an in-product autonomous browser agent.
+Do not add resumes, job matching, accounts, payments, employer workflows, facial or emotion analysis, culture-fit inference, generic chat, or an in-product autonomous browser agent. Additional interview formats must remain whiteboard-native and require their own validated blueprint, deterministic fixture, contradiction tests, and report evidence path.

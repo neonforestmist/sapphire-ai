@@ -55,6 +55,9 @@ describe("Sapphire interview server orchestration", () => {
     const created = await harness.service.createInterview({
       scenarioId: "global-rate-limiter",
       mode: "demo",
+      interviewType: "system-design",
+      targetRole: "AI engineer",
+      experienceLevel: "intern",
       inputMode: "text",
       consent: { transcript: true, microphone: false },
     });
@@ -150,6 +153,9 @@ describe("Sapphire interview server orchestration", () => {
     const created = await harness.service.createInterview({
       scenarioId: "global-rate-limiter",
       mode: "demo",
+      interviewType: "system-design",
+      targetRole: "AI engineer",
+      experienceLevel: "intern",
       inputMode: "text",
       consent: { transcript: true, microphone: false },
     });

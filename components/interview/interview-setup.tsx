@@ -8,16 +8,19 @@ import { displayText } from "@/components/display-text";
 import styles from "./interview-setup.module.css";
 
 type InputMode = "text" | "voice";
+type ExperienceLevel = "intern" | "early-career" | "mid-level" | "senior";
 
 export function InterviewSetup() {
   const router = useRouter();
   const [inputMode, setInputMode] = useState<InputMode>("text");
+  const [targetRole, setTargetRole] = useState("AI engineering internship");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("intern");
   const [consent, setConsent] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function beginInterview() {
-    if (!consent || isCreating) return;
+    if (!consent || targetRole.trim().length < 2 || isCreating) return;
     setIsCreating(true);
     setError(null);
     try {
@@ -26,6 +29,9 @@ export function InterviewSetup() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           scenarioId: "global-rate-limiter",
+          interviewType: "system-design",
+          targetRole,
+          experienceLevel,
           inputMode,
           consent: { transcript: true, microphone: inputMode === "voice" }
         })
@@ -44,23 +50,47 @@ export function InterviewSetup() {
       <nav className={`shell top-nav ${styles.nav}`} aria-label="Setup navigation"><Brand /><Link className="button-quiet" href="/">Exit setup</Link></nav>
       <div className={`shell ${styles.layout}`}>
         <section className={styles.intro}>
-          <h1>Your first AI<br />systems interview.</h1>
-          <p>No advanced vocabulary required. Explain a simple AI study helper, draw the parts, and revise when evidence reveals a gap.</p>
+          <h1>Set the interview.<br />Then think out loud.</h1>
+          <p>Choose what you are practicing, speak or type your reasoning, and build the answer on a live whiteboard.</p>
           <ol>
-            <li><div><strong>Say the rule</strong><p>Tell Sapphire that each student gets one limit.</p></div></li>
-            <li><div><strong>Draw the helper</strong><p>Place the US and EU services with their counters.</p></div></li>
-            <li><div><strong>Improve the idea</strong><p>Use the follow-up to connect what was missing.</p></div></li>
+            <li><div><strong>Choose the interview</strong><p>Set the format, target role, and experience level.</p></div></li>
+            <li><div><strong>Explain while you draw</strong><p>Use text today, with Gemini Live voice planned as the conversational path.</p></div></li>
+            <li><div><strong>Get a grounded follow-up</strong><p>Sapphire connects what you said to the exact elements on your board.</p></div></li>
           </ol>
         </section>
 
         <section className={`glass-panel ${styles.form}`} aria-labelledby="setup-heading">
           <div className={styles.formHeading}>
             <h2 id="setup-heading">Set up a practice round</h2>
-            <p>About 4 minutes | no account required</p>
+            <p>Choose the interview before the whiteboard opens</p>
+          </div>
+
+          <div className={styles.briefFields}>
+            <label className={styles.inputField}>
+              <span>Interview format</span>
+              <select defaultValue="system-design" disabled aria-describedby="format-help">
+                <option value="system-design">System design</option>
+              </select>
+              <small id="format-help">The verified demo currently supports system design.</small>
+            </label>
+            <label className={styles.inputField}>
+              <span>Experience level</span>
+              <select value={experienceLevel} onChange={(event) => setExperienceLevel(event.target.value as ExperienceLevel)}>
+                <option value="intern">Intern</option>
+                <option value="early-career">Early career</option>
+                <option value="mid-level">Mid-level</option>
+                <option value="senior">Senior</option>
+              </select>
+            </label>
+            <label className={`${styles.inputField} ${styles.roleField}`}>
+              <span>Target role</span>
+              <input required value={targetRole} maxLength={120} onChange={(event) => setTargetRole(event.target.value)} />
+              <small>Sapphire uses this role in the interview blueprint.</small>
+            </label>
           </div>
 
           <fieldset className={styles.fieldset}>
-            <legend>How would you like to respond?</legend>
+            <legend>How do you want to think out loud?</legend>
             <label className={`${styles.modeCard} ${inputMode === "text" ? styles.selected : ""}`}>
               <input type="radio" name="input-mode" value="text" checked={inputMode === "text"} onChange={() => setInputMode("text")} />
               <span className={styles.modeIcon} aria-hidden="true">⌨</span>
@@ -70,7 +100,7 @@ export function InterviewSetup() {
             <label className={`${styles.modeCard} ${styles.disabledMode}`}>
               <input type="radio" name="input-mode" value="voice" checked={false} disabled onChange={() => setInputMode("voice")} />
               <span className={styles.modeIcon} aria-hidden="true">◉</span>
-              <span><strong>Voice practice</strong><small>Coming after Live transport is verified</small></span>
+              <span><strong>Gemini Live voice</strong><small>Browser audio transport is not connected yet</small></span>
               <span className={styles.radioMark} aria-hidden="true" />
             </label>
           </fieldset>
@@ -86,8 +116,8 @@ export function InterviewSetup() {
           </label>
 
           {error && <p className={styles.error} role="alert">{displayText(error)}</p>}
-          <button type="button" className={`button-primary ${styles.submit}`} disabled={!consent || isCreating} onClick={beginInterview}>
-            {isCreating ? "Opening whiteboard…" : "Start practice"}<span aria-hidden="true">→</span>
+          <button type="button" className={`button-primary ${styles.submit}`} disabled={!consent || targetRole.trim().length < 2 || isCreating} onClick={beginInterview}>
+            {isCreating ? "Opening whiteboard…" : "Start text practice"}<span aria-hidden="true">→</span>
           </button>
           <p className={styles.privacyNote}>You can delete the full session and its artifacts from the report.</p>
         </section>

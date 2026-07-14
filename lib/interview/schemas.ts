@@ -187,10 +187,24 @@ export const reasoningStateSchema = z
 
 export type ReasoningState = z.infer<typeof reasoningStateSchema>;
 
+export const interviewTypeSchema = z.enum(["system-design"]);
+export type InterviewType = z.infer<typeof interviewTypeSchema>;
+
+export const experienceLevelSchema = z.enum([
+  "intern",
+  "early-career",
+  "mid-level",
+  "senior",
+]);
+export type ExperienceLevel = z.infer<typeof experienceLevelSchema>;
+
 export const blueprintInputSchema = z
   .object({
     scenarioId: domainIdSchema,
     mode: z.enum(["demo", "normal"]),
+    interviewType: interviewTypeSchema,
+    targetRole: z.string().trim().min(2).max(120),
+    experienceLevel: experienceLevelSchema,
   })
   .strict();
 
