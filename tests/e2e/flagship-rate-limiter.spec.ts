@@ -41,6 +41,13 @@ test("grounds a rate-limiter contradiction in exact board evidence and records t
   await expect(page.getByLabel("Interview format")).toHaveValue("system-design");
   await expect(page.getByLabel("Experience level")).toHaveValue("intern");
   await expect(page.getByLabel("Target role")).toHaveValue("AI engineering internship");
+  await expect(page.getByRole("heading", { name: "What each format means" })).toBeVisible();
+  await expect(page.getByRole("table").getByRole("row")).toHaveCount(5);
+  const formatBox = await page.getByLabel("Interview format").boundingBox();
+  const experienceBox = await page.getByLabel("Experience level").boundingBox();
+  expect(formatBox).not.toBeNull();
+  expect(experienceBox).not.toBeNull();
+  expect(Math.abs(formatBox!.y - experienceBox!.y)).toBeLessThanOrEqual(1);
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: /^start interview$/i }).click();
   await expect(page).toHaveURL(/\/interview\/session-[A-Za-z0-9_-]+$/);

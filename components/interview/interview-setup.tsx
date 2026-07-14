@@ -10,6 +10,33 @@ import styles from "./interview-setup.module.css";
 type InterviewType = "system-design" | "technical-explanation" | "case-study" | "behavioral";
 type ExperienceLevel = "intern" | "early-career" | "mid-level" | "senior";
 
+const INTERVIEW_FORMATS: Array<{
+  value: InterviewType;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: "system-design",
+    label: "System design",
+    description: "Plan how parts of a technical system work together and explain the trade-offs.",
+  },
+  {
+    value: "technical-explanation",
+    label: "Technical explanation",
+    description: "Teach a technical idea clearly and respond to follow-up questions.",
+  },
+  {
+    value: "case-study",
+    label: "Case study",
+    description: "Work through an open-ended business problem and recommend a practical solution.",
+  },
+  {
+    value: "behavioral",
+    label: "Behavioral",
+    description: "Use a real past experience to show how you handled a situation.",
+  },
+];
+
 const PRACTICE_EXAMPLES: Record<InterviewType, { title: string; description: string }> = {
   "system-design": {
     title: "Design one shared usage limit for an AI study helper.",
@@ -87,22 +114,27 @@ export function InterviewSetup() {
           <div className={styles.briefFields}>
             <label className={styles.inputField}>
               <span>Interview format</span>
-              <select value={interviewType} onChange={(event) => setInterviewType(event.target.value as InterviewType)} aria-describedby="format-help">
-                <option value="system-design">System design</option>
-                <option value="technical-explanation">Technical explanation</option>
-                <option value="case-study">Case study</option>
-                <option value="behavioral">Behavioral</option>
-              </select>
+              <div className={styles.selectControl}>
+                <select value={interviewType} onChange={(event) => setInterviewType(event.target.value as InterviewType)} aria-describedby="format-help">
+                  {INTERVIEW_FORMATS.map((format) => (
+                    <option key={format.value} value={format.value}>{format.label}</option>
+                  ))}
+                </select>
+                <span className={styles.selectChevron} aria-hidden="true" />
+              </div>
               <small id="format-help">You can still show or hide the whiteboard during the interview.</small>
             </label>
             <label className={styles.inputField}>
               <span>Experience level</span>
-              <select value={experienceLevel} onChange={(event) => setExperienceLevel(event.target.value as ExperienceLevel)}>
-                <option value="intern">Intern</option>
-                <option value="early-career">Early career</option>
-                <option value="mid-level">Mid-level</option>
-                <option value="senior">Senior</option>
-              </select>
+              <div className={styles.selectControl}>
+                <select value={experienceLevel} onChange={(event) => setExperienceLevel(event.target.value as ExperienceLevel)}>
+                  <option value="intern">Intern</option>
+                  <option value="early-career">Early career</option>
+                  <option value="mid-level">Mid-level</option>
+                  <option value="senior">Senior</option>
+                </select>
+                <span className={styles.selectChevron} aria-hidden="true" />
+              </div>
             </label>
             <label className={`${styles.inputField} ${styles.roleField}`}>
               <span>Target role</span>
@@ -110,6 +142,28 @@ export function InterviewSetup() {
               <small>Sapphire uses this role in the interview blueprint.</small>
             </label>
           </div>
+
+          <section className={styles.formatGuide} aria-labelledby="format-guide-heading">
+            <h3 id="format-guide-heading">What each format means</h3>
+            <div className={styles.formatTableFrame}>
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Format</th>
+                    <th scope="col">What you practice</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {INTERVIEW_FORMATS.map((format) => (
+                    <tr className={format.value === interviewType ? styles.selectedFormat : undefined} key={format.value}>
+                      <th scope="row">{format.label}</th>
+                      <td>{format.description}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
 
           <div className={styles.scenario}>
             <h3>{PRACTICE_EXAMPLES[interviewType].title}</h3>
