@@ -2,7 +2,7 @@
 
 SapphireAI is a multimodal interview practice app. Type or speak in the same session, open the whiteboard when it helps, and get follow-up questions grounded in what you actually said and drew.
 
-Voice is the default conversation mode, but the microphone starts muted. Sapphire introduces the role naturally and reads interviewer turns aloud while keeping their transcript in chat; users can still type, speak, or switch to a quiet text conversation. In local mock mode, supported browsers provide speech-to-text and read-aloud without Gemini credentials. Raw microphone audio is not stored by SapphireAI.
+Voice starts muted. Sapphire keeps spoken and typed turns in one transcript, while the board stays optional. Raw microphone audio is not stored by SapphireAI.
 
 ## Where it helps
 
@@ -13,15 +13,27 @@ Voice is the default conversation mode, but the microphone starts muted. Sapphir
 | Case study | Reduce support response time without lowering quality | Optional for a workflow or decision tree |
 | Behavioral | Describe learning an unfamiliar tool quickly | Usually hidden so the conversation stays central |
 
+## See it in action
+
 <table>
   <tr>
     <td width="50%">
-      <img src="docs/images/sapphire-ai-voice-interview.png" alt="SapphireAI voice-first behavioral interview with the microphone muted and whiteboard hidden">
-      <br><sub><strong>Conversation first:</strong> type or unmute without choosing a mode before the interview.</sub>
+      <a href="docs/images/sapphire-ai-home.png"><img src="docs/images/sapphire-ai-home.png" alt="SapphireAI home screen with a visual interview-method cue"></a>
+      <br><sub><strong>Follow the method.</strong> Set the brief, explain, map, challenge, and revise.</sub>
     </td>
     <td width="50%">
-      <img src="docs/images/sapphire-ai-contradiction.png" alt="SapphireAI system-design interview highlighting exact disconnected regional counters">
-      <br><sub><strong>Board when useful:</strong> the interviewer cites the exact elements behind a contradiction.</sub>
+      <a href="docs/images/sapphire-ai-voice-interview.png"><img src="docs/images/sapphire-ai-voice-interview.png" alt="SapphireAI interview conversation with voice controls and transcript"></a>
+      <br><sub><strong>Talk or type.</strong> Voice controls and the transcript share one focused conversation.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <a href="docs/images/sapphire-ai-contradiction.png"><img src="docs/images/sapphire-ai-contradiction.png" alt="SapphireAI highlighting exact whiteboard elements behind a contradiction"></a>
+      <br><sub><strong>Catch contradictions.</strong> Sapphire highlights the exact board elements that conflict with the answer.</sub>
+    </td>
+    <td width="50%">
+      <a href="docs/images/sapphire-ai-report.png"><img src="docs/images/sapphire-ai-report.png" alt="SapphireAI evidence-linked interview report after a candidate revision"></a>
+      <br><sub><strong>Review the evidence.</strong> The report connects the probe and revision to what was said and drawn.</sub>
     </td>
   </tr>
 </table>
@@ -33,19 +45,6 @@ Voice is the default conversation mode, but the microphone starts muted. Sapphir
 3. Show or hide the Excalidraw whiteboard at any point.
 4. After a meaningful board edit pauses, Sapphire compares finalized transcript evidence with stable board elements.
 5. Review the question, revision, report, and board replay.
-
-<table>
-  <tr>
-    <td width="50%">
-      <img src="docs/images/sapphire-ai-setup.png" alt="SapphireAI setup with interview type, experience level, and target role">
-      <br><sub>One setup for system design, technical, case, and behavioral practice.</sub>
-    </td>
-    <td width="50%">
-      <img src="docs/images/sapphire-ai-report.png" alt="SapphireAI evidence report after a contradiction and candidate revision">
-      <br><sub>The final report links judgments back to observable evidence.</sub>
-    </td>
-  </tr>
-</table>
 
 ## Flagship demo
 
@@ -84,7 +83,7 @@ SESSION_SIGNING_SECRET=replace-with-at-least-32-random-characters
 
 It needs no cloud account, billing, API key, or Google Cloud credit.
 
-In supported Chrome-family browsers, **Unmute microphone** uses the browser speech service and **Hear question** reads the current interviewer turn aloud. This free local fallback is separate from native Gemini Live audio.
+In supported Chrome-family browsers, **Unmute microphone** uses the browser speech service and **Replay last turn** reads the latest interviewer turn aloud. This free local fallback is separate from native Gemini Live audio.
 
 ## Enable Gemini Live
 
