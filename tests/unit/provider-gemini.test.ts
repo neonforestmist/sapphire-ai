@@ -10,7 +10,7 @@ import {
   sessionCreatedEventSchema,
   type BoardAnalysisInput,
 } from "@/lib/interview/schemas";
-import { createStructuredInteraction } from "@/lib/gemini/interactions";
+import { createStructuredInteraction, toGeminiJsonSchema } from "@/lib/gemini/interactions";
 import { MockGeminiGateway } from "@/lib/gemini/mock-gateway";
 import { RealGeminiGateway } from "@/lib/gemini/real-gateway";
 import { sanitizeReasoningState } from "@/lib/gemini/sanitize";
@@ -264,6 +264,27 @@ describe("real interaction boundary", () => {
       generation_config: { thinking_level: "medium", max_output_tokens: 4_096 },
       store: false,
     });
+  });
+
+  it("removes unsupported string constraints from the Gemini response schema", () => {
+    const schema = z.object({
+      id: z.string().min(2).max(64).regex(/^element-[a-z]+$/).nullable(),
+      score: z.number().min(0).max(1),
+      labels: z.array(z.string()).min(1).max(3),
+    }).strict();
+    const responseSchema = toGeminiJsonSchema(schema, "Element");
+
+    const serialized = JSON.stringify(responseSchema);
+    expect(serialized).not.toContain('"pattern"');
+    expect(serialized).not.toContain('"minLength"');
+    expect(serialized).not.toContain('"maxLength"');
+    expect(serialized).not.toContain('"anyOf"');
+    expect(serialized).not.toContain('"minimum"');
+    expect(serialized).not.toContain('"maximum"');
+    expect(serialized).not.toContain('"minItems"');
+    expect(serialized).not.toContain('"maxItems"');
+    expect(serialized).not.toContain('"additionalProperties"');
+    expect(responseSchema).toMatchObject({ title: "Element", type: "object" });
   });
 
   it("allows only one transient provider retry", async () => {

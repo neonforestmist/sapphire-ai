@@ -29,6 +29,13 @@ export default function LandingPage() {
           <p className={styles.lede}>
             Type or speak in the same session. Open the whiteboard only when it helps. Sapphire ties each follow-up to observable evidence.
           </p>
+          <div className={styles.methodLine} aria-label="Sapphire interview method">
+            <span>Set the brief</span>
+            <span>Explain</span>
+            <span>Map</span>
+            <span>Challenge</span>
+            <span>Revise</span>
+          </div>
           <div className={styles.heroActions}>
             <Link className="button-primary" href="/interview/new">
               Set up your interview <span aria-hidden="true">→</span>

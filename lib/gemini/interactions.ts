@@ -144,19 +144,55 @@ function normalizeGeminiError(error: unknown): AppError {
   });
 }
 
-function toJsonSchema<T>(schema: ZodType<T>, schemaName: string): Record<string, unknown> {
+function removeUnsupportedGeminiSchemaKeywords(value: unknown): void {
+  if (!value || typeof value !== "object") return;
+  if (Array.isArray(value)) {
+    value.forEach(removeUnsupportedGeminiSchemaKeywords);
+    return;
+  }
+
+  const record = value as Record<string, unknown>;
+  const anyOf = record.anyOf;
+  if (Array.isArray(anyOf) && anyOf.length === 2) {
+    const variants = anyOf.filter(
+      (variant): variant is Record<string, unknown> => Boolean(variant) && typeof variant === "object" && !Array.isArray(variant),
+    );
+    const stringVariant = variants.find((variant) => variant.type === "string");
+    const nullVariant = variants.find((variant) => variant.type === "null");
+    if (stringVariant && nullVariant) {
+      delete record.anyOf;
+      Object.assign(record, stringVariant, { type: ["string", "null"] });
+    }
+  }
+  // Gemini structured outputs support a JSON Schema subset. Zod emits
+  // validation bounds and strict-object flags, but the Interactions API rejects
+  // the full generated schema. Runtime Zod validation still enforces every
+  // removed constraint after generation.
+  delete record.pattern;
+  delete record.minLength;
+  delete record.maxLength;
+  delete record.minimum;
+  delete record.maximum;
+  delete record.minItems;
+  delete record.maxItems;
+  delete record.additionalProperties;
+  Object.values(record).forEach(removeUnsupportedGeminiSchemaKeywords);
+}
+
+export function toGeminiJsonSchema<T>(schema: ZodType<T>, schemaName: string): Record<string, unknown> {
   const converted = z.toJSONSchema(schema, {
     target: "draft-07",
     unrepresentable: "any",
   }) as Record<string, unknown>;
   delete converted.$schema;
+  removeUnsupportedGeminiSchemaKeywords(converted);
   return { title: schemaName, ...converted };
 }
 
 export async function createStructuredInteraction<T>(
   options: StructuredInteractionOptions<T>,
 ): Promise<StructuredInteractionResult<T>> {
-  const responseSchema = toJsonSchema(options.schema, options.schemaName);
+  const responseSchema = toGeminiJsonSchema(options.schema, options.schemaName);
   const sleep = options.sleep ?? ((milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
   let remainingTransientRetries = options.maximumTransientRetries;
   let attempts = 0;

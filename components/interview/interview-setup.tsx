@@ -37,7 +37,7 @@ const INTERVIEW_FORMATS: Array<{
   {
     value: "behavioral",
     label: "Behavioral",
-    description: "Have a conversation-only back-and-forth about your real experiences, decisions, teamwork, and challenges—no whiteboard needed.",
+    description: "Have a conversation-only back-and-forth about your real experiences, decisions, teamwork, and challenges. No whiteboard needed.",
     careers: ["Every career"],
   },
 ];

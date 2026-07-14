@@ -229,7 +229,7 @@ function fallbackInterviewerReply(
   switch (blueprint.interviewType) {
     case "behavioral":
       return [
-        "Thanks—that gives me the situation. What did you personally do, and why did you choose that approach?",
+        "Thanks, that gives me the situation. What did you personally do, and why did you choose that approach?",
         "What changed because of your actions, and how did you measure the result?",
         "Looking back, what would you do differently next time?",
       ][candidateTurnIndex % 3] ?? null;
@@ -993,33 +993,34 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
             </div>
 
             <div className={styles.chatComposer}>
-              <label htmlFor="candidate-reasoning">Message Sapphire</label>
-              <textarea
-                id="candidate-reasoning"
-                value={reasoningText}
-                onChange={(event) => setReasoningText(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault();
-                    void sendReasoning();
-                  }
-                }}
-                rows={3}
-                maxLength={8_000}
-                placeholder="Type your answer, then press Enter to send"
-              />
-              <div className={`${styles.responseActions} ${boardVisible ? "" : styles.textOnlyActions}`}>
-                <button className="button-primary" onClick={sendReasoning} disabled={!reasoningText.trim() || status !== "idle"}>
-                  {status === "sending" ? "Sending…" : "Send message"}
+              <label htmlFor="candidate-reasoning">Your answer</label>
+              <div className={styles.composerRow}>
+                <textarea
+                  id="candidate-reasoning"
+                  aria-label="Message Sapphire"
+                  value={reasoningText}
+                  onChange={(event) => setReasoningText(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      void sendReasoning();
+                    }
+                  }}
+                  rows={2}
+                  maxLength={8_000}
+                  placeholder="Type a reply"
+                />
+                <button aria-label="Send message" className={`${styles.sendButton} button-primary`} onClick={sendReasoning} disabled={!reasoningText.trim() || status !== "idle"}>
+                  {status === "sending" ? "Sending…" : "Send"}
                 </button>
-                {boardVisible && <button className="button-secondary" onClick={() => void analyzeBoard()} disabled={status !== "idle" || !scenarioLoaded}>
-                  {status === "analyzing" ? "Checking board…" : "Analyze now"}
-                </button>}
               </div>
+              {boardVisible && <button className={`${styles.analyzeButton} button-secondary`} onClick={() => void analyzeBoard()} disabled={status !== "idle" || !scenarioLoaded}>
+                {status === "analyzing" ? "Checking board…" : "Analyze board"}
+              </button>}
             </div>
           </section>
 
-          <section className={styles.evidenceCard}>
+          {(boardVisible || contradiction || reasoning?.observations.some((item) => item.category === "revision")) && <section className={styles.evidenceCard}>
             <div className={styles.sectionHeading}>
               <h2 className={styles.panelTitle}>Evidence ledger</h2>
               <small>{payload.events.length} events</small>
@@ -1043,7 +1044,7 @@ export function InterviewRoom({ sessionId }: { sessionId: string }) {
             ) : (
               <p className={styles.emptyEvidence}>No interview evidence has been recorded yet. Sapphire waits for a finalized answer before drawing conclusions.</p>
             )}
-          </section>
+          </section>}
 
           {(notice || error || voiceError) && (
             <p className={(error || voiceError) ? styles.error : styles.notice} role={(error || voiceError) ? "alert" : "status"}>
