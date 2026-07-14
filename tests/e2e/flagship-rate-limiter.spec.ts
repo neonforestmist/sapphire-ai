@@ -123,6 +123,7 @@ test("requires explicit transcript consent before creating an anonymous session"
 });
 
 test("keeps a non-technical behavioral interview conversational in text or voice", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
   await page.addInitScript(() => {
     const trackedWindow = window as Window & { __spokenTurns?: string[] };
     trackedWindow.__spokenTurns = [];
@@ -142,6 +143,18 @@ test("keeps a non-technical behavioral interview conversational in text or voice
   await expect.poll(() => page.evaluate(
     () => (window as Window & { __spokenTurns?: string[] }).__spokenTurns ?? [],
   )).toContainEqual(expect.stringContaining("Hey there!"));
+
+  const sendButton = page.getByRole("button", { name: /send message/i });
+  const interviewCard = sendButton.locator("xpath=ancestor::section[1]");
+  const [sendBounds, cardBounds] = await Promise.all([
+    sendButton.boundingBox(),
+    interviewCard.boundingBox(),
+  ]);
+  expect(sendBounds).not.toBeNull();
+  expect(cardBounds).not.toBeNull();
+  expect(sendBounds!.y + sendBounds!.height).toBeLessThanOrEqual(
+    cardBounds!.y + cardBounds!.height + 1,
+  );
 
   await page.getByRole("button", { name: "Text", exact: true }).click();
   await expect(page.getByRole("button", { name: "Text", exact: true })).toHaveAttribute("aria-pressed", "true");
